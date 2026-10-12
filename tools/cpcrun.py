@@ -2,8 +2,8 @@
 """Headless Amstrad CPC harness for Sugar Byte (adapted from Build Dangerous).
 
 Runs the game binary on a bare Z80 (no firmware/ROM), emulating only the hardware the
-game touches: Gate Array (inks, mode), CRTC registers, PPI + PSG keyboard matrix and the
-VSYNC bit. Drives it from a script and saves screenshots (Mode 0 or 1) / checks variables.
+game touches: Gate Array (inks, mode, the 300 Hz IM 1 interrupt), CRTC registers,
+PPI + PSG keyboard matrix and the VSYNC bit. Drives it from a script and saves screenshots (Mode 0 or 1) / checks variables.
 
   cpcrun.py build/sugar.bin --sym build/sugar.sym --script tests/smoke.txt --out build/shots
 
@@ -34,7 +34,7 @@ LFSR noise, logarithmic volumes; no envelopes, which the game doesn't use).
 
 <addr> is SYMBOL, SYMBOL+N, or *SYMBOL+N (N bytes past the pointer stored at SYMBOL).
 
-Keys: up down left right fire esc (keyboard) and jup jdown jleft jright jfire1 jfire2.
+Keys: up down left right fire esc mus (M) (keyboard) and jup jdown jleft jright jfire1 jfire2.
 """
 import argparse
 import os
@@ -46,10 +46,11 @@ from PIL import Image
 FRAME_T = 79872         # 19968 us/frame at 4 T-states/us (ignores CPC wait-state stretching)
 VSYNC_T = 2048          # 8 scanlines
 SLICE_T = 64
+INT_T = FRAME_T // 6     # Gate Array: διακοπή κάθε 52 γραμμές, 300 Hz
 
 KEYS = {
     'up': (0, 0), 'right': (0, 1), 'down': (0, 2), 'left': (1, 0),
-    'fire': (5, 7), 'esc': (8, 2),
+    'fire': (5, 7), 'esc': (8, 2), 'mus': (4, 6),
     'jup': (9, 0), 'jdown': (9, 1), 'jleft': (9, 2), 'jright': (9, 3),
     'jfire2': (9, 4), 'jfire1': (9, 5),
 }
@@ -103,6 +104,8 @@ class CPC:
         self.wait_vbl = syms.get('WAIT_VBL')
         self.vsync_start_t = None
         self.last_vsync_read = 1
+        self.int_pending = False
+        self.ints = 0           # διακοπές που δέχτηκε ο Z80
         self.m.set_output_callback(self.on_out)
         self.m.set_input_callback(self.on_in)
         if self.wait_vbl is not None:
@@ -174,7 +177,15 @@ class CPC:
                 self.at_wait = False
             self.m.ticks_to_stop = SLICE_T
             events = self.m.run()
+            t0 = self.t
             self.t += SLICE_T - self.m.ticks_to_stop
+            if self.t // INT_T != t0 // INT_T:
+                self.int_pending = True     # ο Gate Array την κρατάει ώσπου να γίνει δεκτή
+            # όχι πάνω στο breakpoint του wait_vbl: η επιστροφή θα το μετρούσε δεύτερη φορά
+            if self.int_pending and self.m.pc != self.wait_vbl \
+                    and self.m.on_handle_active_int():
+                self.int_pending = False
+                self.ints += 1
             pc = self.m.pc
             if pc == self.wait_vbl and events & z80.Z80Machine._BREAKPOINT_HIT:
                 self.at_wait = True

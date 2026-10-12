@@ -70,6 +70,10 @@ collect_ingredients:
         jr c,.cell
         ld a,c
         or a
+        ret z
+        ld hl,sfx_collect
+        call play_sfx
+        or 1                    ; NZ
         ret
 
 ; Στο HUD: ένα κεράσι και «× NN» — πόσα υλικά μένουν να κατέβουν.

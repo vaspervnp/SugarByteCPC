@@ -57,9 +57,23 @@ beams           defs MAX_BEAMS  ; γραμμή 0-7, ή κολόνα | #80
 clear_n         defs 1          ; πόσα κελιά σκάνε
 beam_fr         defs 1
 beam_step       defs 1
+boom            defs 1          ; έσκασε περιτύλιγμα σε αυτό το RESOLVE
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
 fall_y          defs 1
 digit_y         defs 1
 vars_end
+
+; Ο ήχος: έξω από τα vars_start..vars_end, γιατί το game_new τα μηδενίζει ενώ
+; η διακοπή τρέχει.
+snd_start
+psg_shadow      defs 11         ; οι καταχωρητές 0-10 του AY
+int_div         defs 1          ; 6 διακοπές = ένα καρέ
+mus_on          defs 1
+mus_ptr         defs 2
+mus_wait        defs 1
+sfx_ptr         defs 2          ; 0 = σιωπή
+sfx_pop         defs 1          ; καρέ που μένουν από το ποπ, 0 = άλλο εφέ
+pop_per         defs 2
+snd_end
         code

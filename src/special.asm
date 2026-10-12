@@ -310,6 +310,8 @@ hit_col:
 ; C = κέντρο, A = ακτίνα: χτυπάει το τετράγωνο (2A+1)x(2A+1), κομμένο στο ταμπλό.
 hit_area:
         ld b,a
+        ld a,1
+        ld (boom),a
         ld a,c
         and 7
         sub b

@@ -1,0 +1,44 @@
+; Ο ήχος (plan.md §10): μουσική στα A + B, εφέ στο C, M = μουσική ναι/όχι.
+run 30
+psgon 8
+psgon 9
+psg 10 0
+; επιλογή: ένα «μπιπ» στο C
+run 1 fire
+run 1
+psgon 10
+run 30
+psg 10 0
+; άκυρη ανταλλαγή: πρώτα το «φσστ» της ανταλλαγής, μετά το βουητό
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+run 20
+poke cursor 0
+run 1 fire
+run 1
+run 1 right
+run 1
+run 1 fire
+until state 2 - 20
+run 2
+psgon 10
+until state 0 - 30
+; μια τριάδα: ποπ
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 3 - 20
+run 2
+psgon 10
+until state 0 - 600
+; M: η μουσική σωπαίνει
+run 1 mus
+run 2
+psg 8 0
+psg 9 0
+expect mus_on 0
+run 1 mus
+run 10
+expect mus_on 1

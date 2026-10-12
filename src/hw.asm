@@ -23,8 +23,11 @@ hw_init:
         out (c),c
         ld bc,#BD00
         out (c),c
-        ld hl,#C9FB             ; #0038: EI : RET, αν ποτέ ανοίξουν οι διακοπές
-        ld (#0038),hl
+        ld a,#C3                ; #0038: JP int_handler (IM 1)
+        ld (#0038),a
+        ld hl,int_handler
+        ld (#0039),hl
+        im 1
         ret
 
 ; Τα χρώματα του Gate Array (| #40) για τα pens 0-15 και το περίγραμμα.
@@ -52,6 +55,7 @@ wait_vbl:
 
 ; Διαβάζει τις 10 γραμμές του πληκτρολογίου μέσω του PSG (reg 14) στο keymap.
 read_matrix:
+        di                      ; ο PSG είναι και του ήχου
         ld bc,#F40E
         out (c),c
         ld bc,#F6C0             ; PSG: διάλεξε καταχωρητή
@@ -76,6 +80,7 @@ read_matrix:
         out (c),c
         ld bc,#F600
         out (c),c
+        ei
         ret
 
 ; joy = ό,τι κρατιέται, joy_edge = ό,τι πατήθηκε σε αυτό το καρέ.
@@ -121,6 +126,7 @@ input_map:
         db 9,%00001000,J_RIGHT
         db 9,%00010000,J_FIRE
         db 9,%00100000,J_FIRE
+        db 4,%01000000,J_MUSIC  ; M: μουσική ναι/όχι
         db #FF
 
 ; A = οι κατευθύνσεις που πρέπει να εκτελεστούν σε αυτό το καρέ: αμέσως στο

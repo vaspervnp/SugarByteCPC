@@ -154,6 +154,7 @@ blit_hud:
 ; HL = οθόνη, DE = πηγή (mask,data πλεγμένα), A = γραμμές. 6 bytes δεδομένων.
 ; Διαβάζει την πηγή με POP: οι διακοπές είναι κλειστές σε όλο το παιχνίδι.
 blit_masked:
+        di                      ; το SP δείχνει στα δεδομένα: καμία διακοπή εδώ
         ld ixl,a
         ld (.sp+1),sp
         ex de,hl
@@ -187,6 +188,7 @@ blit_masked:
 .next   dec ixl
         jr nz,.row
 .sp     ld sp,0
+        ei
         ret
 
 ; A = γραμμή, B = γραμμές, C = πρώτο byte, D = πλάτος σε bytes, E = τιμή

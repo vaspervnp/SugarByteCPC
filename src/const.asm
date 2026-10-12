@@ -61,6 +61,7 @@ J_DOWN          equ 2
 J_LEFT          equ 4
 J_RIGHT         equ 8
 J_FIRE          equ 16
+J_MUSIC         equ 32
 
 ; --- οι καταστάσεις (plan.md §7) ---------------------------------------------
 S_IDLE         equ 0

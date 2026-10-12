@@ -148,6 +148,7 @@ clear_matched:
         ld (nruns),a
         ld (nspawn),a
         ld (nbeams),a
+        ld (boom),a
         ret
 
 ; HL = πρώτο κελί, C = βήμα (1 γραμμή, 8 κολόνα). Σαρώνει 8 κελιά.

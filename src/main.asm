@@ -21,6 +21,8 @@ start:
         call hw_init
         call cls
         call build_tables
+        call snd_init
+        ei
         ld a,r                  ; σπόρος: ποτέ μηδέν
         ld l,a
         ld h,#A5
@@ -33,6 +35,7 @@ start:
         include "special.asm"
         include "cells.asm"
         include "ingred.asm"
+        include "sound.asm"
         include "game.asm"
         include "hud.asm"
 code_end:

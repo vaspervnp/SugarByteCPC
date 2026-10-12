@@ -41,10 +41,19 @@ game_new:
 main_loop:
         call wait_vbl
         call read_input
+        ld a,(joy_edge)
+        and J_MUSIC
+        call nz,toggle_music
         call render_dirty
         call step_state
         call hud_update
         jr main_loop
+
+toggle_music:
+        ld a,(mus_on)
+        xor 1
+        ld (mus_on),a
+        ret
 
 step_state:
         ld a,(state)
@@ -126,7 +135,9 @@ st_idle:
         jr nz,.has_sel
         ld a,c                  ; πρώτη επιλογή
         ld (sel),a
-        jp mark_dirty
+        call mark_dirty
+        ld hl,sfx_select
+        jp play_sfx
 .has_sel
         ld b,a
         cp c
@@ -134,14 +145,18 @@ st_idle:
         ld a,#FF                ; ξανά στο ίδιο: ακύρωση
         ld (sel),a
         ld a,c
-        jp mark_dirty
+        call mark_dirty
+        ld hl,sfx_select
+        jp play_sfx
 .other  call adjacent
         jr c,.swap
         ld a,c                  ; μακριά: η επιλογή μετακομίζει
         ld (sel),a
         call mark_dirty
         ld a,b
-        jp mark_dirty
+        call mark_dirty
+        ld hl,sfx_select
+        jp play_sfx
 .swap   xor a
         ld (choc_broken),a
         ld a,b
@@ -154,7 +169,8 @@ st_idle:
         ld (anim_k),a
         ld a,S_SWAP
         ld (state),a
-        ret
+        ld hl,sfx_swap
+        jp play_sfx
 
 ; B, C = δύο κελιά. Carry αν είναι γείτονες.
 adjacent:
@@ -225,7 +241,8 @@ st_swap:
         ld (anim_k),a
         ld a,S_UNSWAP
         ld (state),a
-        ret
+        ld hl,sfx_bad
+        jp play_sfx
 .back   ld a,S_IDLE
         ld (state),a
         ld a,(swap_a)
@@ -311,11 +328,14 @@ start_clear:
         ld (clear_n),a
         ld a,(nbeams)
         or a
-        ld a,S_CLEAR
-        jr z,.set
+        jr z,.pop
         ld a,S_BEAM
-.set    ld (state),a
-        ret
+        ld (state),a
+        ld hl,sfx_beam
+        jp play_sfx
+.pop    ld a,S_CLEAR
+        ld (state),a
+        jp play_clear_sfx
 
 ; BEAM: η δέσμη πάνω από τη γραμμή/κολόνα, χοντρή και μετά λεπτή, 2 καρέ η
 ; καθεμία· μετά ό,τι δεν σκάει κάτω από τη δέσμη (υλικά) ξαναζωγραφίζεται.
@@ -392,7 +412,7 @@ st_beam:
         ld (anim_k),a
         ld a,S_CLEAR
         ld (state),a
-        ret
+        jp play_clear_sfx
 
 ; A = δέσμη -> C = πρώτο κελί, E = βήμα, B = 8, D = καρέ επικάλυψης (πάχος 0)
 beam_cells:
@@ -551,7 +571,8 @@ resolve_fall:
         ld (anim_k),a
         ld a,S_OVER
         ld (state),a
-        ret
+        ld hl,sfx_over
+        jp play_sfx
 
 ; ---------------------------------------------------------------------------
 ; OVER: οι κινήσεις τελείωσαν. Το περίγραμμα αναβοσβήνει· SPACE = ξανά.
