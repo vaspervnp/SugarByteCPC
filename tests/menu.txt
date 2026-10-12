@@ -1,0 +1,87 @@
+; Το μενού (assets/preview/mockup_menu.png): PLAY, LEVEL NN, SOUND, SCORES,
+; και οι κωδικοί πίστας. Οι κωδικοί είναι στο build/levels.asm: πίστα 3 = 0029.
+run 30
+expect state 9
+expect menu_sel 0
+shot menu
+
+; ↓ στο LEVEL, ↓ στο SOUND, SPACE: μουσική όχι
+run 1 down
+run 1
+expect menu_sel 1
+run 1 down
+run 1
+run 1 fire
+run 1
+expect menu_sel 2
+expect mus_on 0
+run 1 fire
+run 1
+expect mus_on 1
+
+; SCORES και πίσω
+run 1 down
+run 1
+run 1 fire
+run 3
+expect state 10
+shot scores
+run 1 fire
+run 2
+expect state 9
+
+; LEVEL: λάθος κωδικός (0001) μένει στην εισαγωγή, ESC ακυρώνει
+run 1 up
+run 1
+run 1 up
+run 1
+expect menu_sel 1
+run 1 fire
+run 1
+expect state 8
+run 1 left
+run 1
+run 1 up
+run 1
+run 1 fire
+run 1
+expect state 8
+expect cur_level 0
+run 1 esc
+run 1
+expect state 9
+
+; 0029 -> πίστα 3
+run 1 fire
+run 1
+run 1 right
+run 1
+run 1 right
+run 1
+run 1 up
+run 1
+run 1 up
+run 1
+run 1 right
+run 1
+run 1 down
+run 1
+expect code_dig+2 2
+expect code_dig+3 9
+shot code
+run 1 fire
+run 1
+expect state 9
+expect cur_level 2
+
+; PLAY: η πίστα 3· ESC πίσω στο μενού
+run 1 up
+run 1
+run 1 fire
+run 2
+expect state 0
+expect moves #18
+shot level3
+run 1 esc
+run 3
+expect state 9

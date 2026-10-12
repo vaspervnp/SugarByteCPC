@@ -27,6 +27,7 @@ game_new:
         ld a,(cur_level)
         call load_level
         call fill_board
+        call draw_frame
         call draw_board_all
         call hud_init
         ; S_IDLE == 0 από τον μηδενισμό
@@ -64,14 +65,14 @@ step_state:
 
 state_tab:
         dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam, st_win
-        dw st_code
+        dw st_code, st_menu, st_scores
 
 ; ---------------------------------------------------------------------------
 ; IDLE: ο δείκτης κινείται και αναβοσβήνει, το SPACE επιλέγει και ανταλλάσσει.
 st_idle:
         ld a,(joy_edge)
         and J_ESC
-        jp nz,start_code
+        jp nz,menu_enter
         ld hl,blink_t
         inc (hl)
         ld a,(hl)
@@ -577,6 +578,7 @@ resolve_fall:
         ld a,S_WIN
         ld (state),a
         call draw_win_stars
+        call record_best
         ld a,(cur_level)        ; ο κωδικός της επόμενης πίστας
         inc a
         cp NLEVELS
@@ -591,7 +593,7 @@ resolve_fall:
 st_win:
         ld a,(joy_edge)
         and J_ESC
-        jp nz,start_code
+        jp nz,menu_enter
         ld a,(joy_edge)
         and J_FIRE
         ret z
@@ -620,9 +622,9 @@ st_over:
         ld a,(joy_edge)
         and J_ESC
         jr z,.noesc
-        ld a,#54                ; περίγραμμα μαύρο όσο γράφεται ο κωδικός
+        ld a,#54                ; περίγραμμα μαύρο: στο μενού
         out (c),a
-        jp start_code
+        jp menu_enter
 .noesc  ld a,(joy_edge)
         and J_FIRE
         ret z

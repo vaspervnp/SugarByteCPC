@@ -1,4 +1,6 @@
 ; Το ταμπλό στήνεται, ο δείκτης κινείται, η επιλογή ανάβει.
+run 1
+until state 0 fire 100     ; από το μενού: PLAY
 run 20
 shot start
 board

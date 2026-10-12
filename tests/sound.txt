@@ -1,4 +1,6 @@
 ; Ο ήχος (plan.md §10): μουσική στα A + B, εφέ στο C, M = μουσική ναι/όχι.
+run 1
+until state 0 fire 100     ; από το μενού: PLAY
 run 30
 psgon 8
 psgon 9

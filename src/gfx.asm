@@ -2,7 +2,7 @@
 
 ; LINE_LO/LINE_HI: η διεύθυνση κάθε γραμμής οθόνης. CELL_SCR: κάθε κελιού.
 build_tables:
-        ld hl,#C000
+        ld hl,SCR_BASE
         ld de,LINE_LO
 .line   ld a,l
         ld (de),a
@@ -13,13 +13,15 @@ build_tables:
         call next_line_hl
         inc e
         ld a,e
-        cp 200
+        cp SCR_H
         jr c,.line
 
         ld ix,CELL_SCR
         ld a,BOARD_Y
 .row    push af
         call line_addr
+        ld de,BOARD_XB
+        add hl,de
         ld b,COLS
 .col    ld (ix+0),l
         ld (ix+1),h
@@ -34,17 +36,25 @@ build_tables:
         jr c,.row
         ret
 
-; HL = διεύθυνση οθόνης -> η ίδια θέση στην επόμενη γραμμή
+; HL = διεύθυνση οθόνης -> η ίδια θέση στην επόμενη γραμμή (overscan).
+; Μέσα στη γραμμή χαρακτήρων +#800· στην αλλαγή της -#3800+96, και αν βγει
+; έξω από τα 2 KB της σελίδας (γραμμή 20 -> 21), στην επόμενη σελίδα.
 next_line_hl:
         ld a,h
         add a,8
         ld h,a
-        ret nc
+        and #38
+        ret nz
         ld a,l
-        add a,#50
+        add a,SCR_WB
         ld l,a
         ld a,h
-        adc a,#C0
+        adc a,#C0               ; -#40: πίσω στη γραμμή 0 της ίδιας σελίδας
+        ld h,a
+        and #38
+        ret z
+        ld a,h                  ; πέρασε τα 2 KB: στο #C000 της επόμενης σελίδας
+        add a,#38
         ld h,a
         ret
 
@@ -78,7 +88,8 @@ cell_xy:
         add a,a
         add a,c
         add a,a
-        ld c,a                  ; cx * 6
+        add a,BOARD_XB
+        ld c,a                  ; BOARD_XB + cx * 6
         ld a,b
         and #38                 ; cy * 8
         ld b,a
@@ -116,15 +127,21 @@ blit_cell:
         ld a,b
         or c
         ret z
-        ld a,d
+        ld a,d                  ; επόμενη γραμμή (overscan, βλ. next_line_hl)
         add a,8
         ld d,a
-        jr nc,.row
+        and #38
+        jr nz,.row
         ld a,e
-        add a,#50
+        add a,SCR_WB
         ld e,a
         ld a,d
         adc a,#C0
+        ld d,a
+        and #38
+        jr z,.row
+        ld a,d
+        add a,#38
         ld d,a
         jr .row
 
@@ -139,15 +156,21 @@ blit_hud:
         ld a,b
         or c
         ret z
-        ld a,d
+        ld a,d                  ; επόμενη γραμμή (overscan, βλ. next_line_hl)
         add a,8
         ld d,a
-        jr nc,.row
+        and #38
+        jr nz,.row
         ld a,e
-        add a,#50
+        add a,SCR_WB
         ld e,a
         ld a,d
         adc a,#C0
+        ld d,a
+        and #38
+        jr z,.row
+        ld a,d
+        add a,#38
         ld d,a
         jr .row
 
@@ -175,15 +198,21 @@ blit_masked:
         and c
         or b
         ld (de),a
-        ld a,h
+        ld a,h                  ; επόμενη γραμμή (overscan, βλ. next_line_hl)
         add a,8
         ld h,a
-        jr nc,.next
+        and #38
+        jr nz,.next
         ld a,l
-        add a,#50
+        add a,SCR_WB
         ld l,a
         ld a,h
         adc a,#C0
+        ld h,a
+        and #38
+        jr z,.next
+        ld a,h
+        add a,#38
         ld h,a
 .next   dec ixl
         jr nz,.row
@@ -208,11 +237,11 @@ fill_rect:
         djnz .row
         ret
 
-; Σβήνει όλη την οθόνη.
+; Σβήνει όλη την οθόνη (και τα κενά της σελίδας 32 KB).
 cls:
-        ld hl,#C000
-        ld de,#C001
-        ld bc,#3FFF
+        ld hl,SCREEN
+        ld de,SCREEN+1
+        ld bc,#7FFF
         ld (hl),0
         ldir
         ret

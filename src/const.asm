@@ -1,7 +1,20 @@
 ; const.asm — σταθερές του παιχνιδιού και ο χάρτης της μνήμης (plan.md §5)
 
+; --- η οθόνη: overscan 192x248 σε σελίδα 32 KB (plan.md §4.5) ----------------
+;   y   0.. 31   ο τίτλος, 192x32
+;   y  32..223   16 μπορντούρα | 96 ταμπλό | 64 HUD | 16 μπορντούρα
+;   y 224..247   το πόδι, 192x24
+SCR_WB          equ 96          ; bytes ανά γραμμή (R1 = 48)
+SCR_H           equ 248         ; γραμμές (R6 = 31)
+SCR_BASE        equ #8000+32    ; R12/R13 = #2C10: η γραμμή 21 αρχίζει ακριβώς στο #C000
+TITLE_Y         equ 0
+FOOT_Y          equ 224
+BORDER_XB       equ 8           ; πλάτος της πλαϊνής μπορντούρας σε bytes
+RBORDER_XB      equ SCR_WB-BORDER_XB    ; 88: η δεξιά μπορντούρα (bytes, όχι pixels)
+
 ; --- το ταμπλό --------------------------------------------------------------
-BOARD_Y         equ 4           ; πρώτη γραμμή οθόνης του ταμπλό
+BOARD_Y         equ 32          ; πρώτη γραμμή οθόνης του ταμπλό
+BOARD_XB        equ BORDER_XB   ; πρώτο byte του ταμπλό
 CELL_WB         equ 6           ; bytes ανά γραμμή κελιού (12 pixels Mode 0)
 CELL_H          equ 24          ; γραμμές ανά κελί
 COLS            equ 8
@@ -39,11 +52,19 @@ MAX_SPAWN       equ 16
 FORM_SHIFT      equ 3           ; board[] bits 3-4: η μορφή του candy
 
 ; --- το HUD ------------------------------------------------------------------
-HUD_XB          equ 48          ; πρώτο byte του HUD (pixel 96)
-HUD_ICON_XB     equ HUD_XB+1
-HUD_DIGIT_XB    equ HUD_XB+5
-HUD_SCORE_Y     equ 8
-HUD_MOVES_Y     equ 22
+HUD_XB          equ BOARD_XB+48 ; πρώτο byte του HUD (pixel 112)
+HUD_WB          equ 32          ; 64 pixels
+HUD_Y           equ BOARD_Y
+
+; τα εικονίδια 8x16 του icons_gfx (menu.bin)
+ICON_SCORE      equ 0           ; βάζο
+ICON_MOVES      equ 1           ; βέλη ανταλλαγής
+ICON_TIME       equ 2           ; κλεψύδρα
+ICON_GOAL       equ 3           ; γλειφιτζούρι
+ICON_JELLY      equ 4
+ICON_STAR_ON    equ 5
+ICON_STAR_OFF   equ 6
+ICON_LOCK       equ 7
 
 ; bytes Mode 0 με δύο ίδια (ή δύο δοσμένα) pixels
 PB_BLACK        equ #00
@@ -78,6 +99,8 @@ S_OVER         equ 5
 S_BEAM         equ 6
 S_WIN          equ 7
 S_CODE         equ 8
+S_MENU         equ 9
+S_SCORES       equ 10
 MAX_BEAMS       equ 16
 BIG_CLEAR       equ 24          ; πάνω από τόσα κελιά: σκάσιμο σε 2 φάσεις, όχι 4
 
@@ -87,4 +110,6 @@ SPRITES_ORG     equ #4000
 CELL_SCR        equ #7580       ; 64 words: η διεύθυνση οθόνης κάθε κελιού
 LINE_LO         equ #7600       ; 200 bytes: χαμηλό byte της διεύθυνσης κάθε γραμμής
 LINE_HI         equ #7700       ; 200 bytes: υψηλό byte
-STACK_TOP       equ #C000
+VARS_ORG        equ #7800       ; οι μεταβλητές, κάτω από την οθόνη
+STACK_TOP       equ #8000       ; η στοίβα ανεβαίνει από κάτω της
+SCREEN          equ #8000       ; η οθόνη: #8000-#FFFF (με κενά στο #C3C0.. κάθε #800)

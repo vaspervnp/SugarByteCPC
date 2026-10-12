@@ -1,4 +1,6 @@
 ; Οι πίστες (plan.md §11): φόρτωμα, στόχοι, νίκη, ήττα, αστέρια.
+run 1
+until state 0 fire 100     ; από το μενού: PLAY
 run 20
 expect cur_level 0
 expect lv_goal 0

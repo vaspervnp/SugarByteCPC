@@ -1,10 +1,10 @@
-; vars.asm — η κατάσταση του παιχνιδιού στο #B000 (δεν γράφεται στο αρχείο)
+; vars.asm — η κατάσταση του παιχνιδιού στο VARS_ORG (δεν γράφεται στο αρχείο)
 ;
-; Οι τέσσερις πίνακες των 64 κάθονται στη σελίδα #B0, ώστε ο δείκτης κελιού
-; να είναι κατευθείαν το L: board = #B000+i, matched = board | #40,
+; Οι τέσσερις πίνακες των 64 κάθονται στη μία σελίδα των 256, ώστε ο δείκτης κελιού
+; να είναι κατευθείαν το L: board = σελίδα+i, matched = board | #40,
 ; cell = board | #80, dirty_q = board | #C0.
 
-        org #B000
+        org VARS_ORG
         nocode
 board           defs 64         ; τι κάθεται στο κελί (plan.md §6)
 matched         defs 64         ; σκάει: bit 0 γραμμή, 1 κολόνα, 2 «δεσμευμένο»,
@@ -70,7 +70,8 @@ lv_number       defs 1
 win_n           defs 1
 code_dig        defs 4          ; ο κωδικός που γράφεται, ένα ψηφίο το byte
 code_pos        defs 1
-code_prev       defs 1          ; η κατάσταση πριν το ESC
+menu_tmp        defs 1
+menu_buf        defs 12         ; η ετικέτα ενός πιάτου που αλλάζει
 boom            defs 1          ; έσκασε περιτύλιγμα σε αυτό το RESOLVE
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
@@ -81,6 +82,8 @@ vars_end
 ; Ο ήχος: έξω από τα vars_start..vars_end, γιατί το game_new τα μηδενίζει ενώ
 ; η διακοπή τρέχει.
 cur_level       defs 1          ; η πίστα, από 0 — δεν τη μηδενίζει το game_new
+menu_sel        defs 1          ; η επιλογή του μενού
+best            defs 4*32       ; ανά πίστα: πόντοι BCD (3), αστέρια (1)
 snd_start
 psg_shadow      defs 11         ; οι καταχωρητές 0-10 του AY
 int_div         defs 1          ; 6 διακοπές = ένα καρέ

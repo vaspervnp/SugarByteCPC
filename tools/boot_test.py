@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Φορτώνει τη δισκέτα σε πλήρη εξομοιωτή CPC 6128 (firmware, AMSDOS, FDC) και
-ελέγχει ότι το παιχνίδι ξεκινάει: RUN"SUGAR, Mode 0, το ταμπλό ζωγραφισμένο,
-ο δείκτης κινείται με τα βελάκια.
+ελέγχει ότι το παιχνίδι ξεκινάει: RUN"SUGAR, Mode 0, το μενού, SPACE στο PLAY,
+ο δείκτης κινείται με τα βελάκια. Screenshots: boot_menu.png, boot.png.
 
   boot_test.py build/sugar.dsk --out build/shots
 
@@ -14,7 +14,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 CPCEMU = os.environ.get('CPCEMU', os.path.join(HERE, '..', '..', 'CPCTools', 'cpcemu'))
 sys.path.insert(0, CPCEMU)
-from cpc import CPC, KEY_RIGHT  # noqa: E402
+from cpc import CPC, KEY_RIGHT, KEY_SPACE  # noqa: E402
 
 
 def load_symbols(path):
@@ -44,8 +44,15 @@ def main():
     fails = []
     if c.mode != 0:
         fails.append(f'mode {c.mode}, όχι 0')
+    if c.read_ram(syms['STATE'], 1)[0] != 9:
+        fails.append('δεν είναι στο μενού')
+    c.screenshot(os.path.join(args.out, 'boot_menu.png'), aspect=True)
+    c.key_down(KEY_SPACE)
+    c.run_frames(3)
+    c.key_up(KEY_SPACE)
+    c.run_frames(30)
     if c.read_ram(syms['STATE'], 1)[0] != 0:
-        fails.append('state != IDLE')
+        fails.append('το PLAY δεν ξεκίνησε το παιχνίδι')
     cur = c.read_ram(syms['CURSOR'], 1)[0]
     c.key_down(KEY_RIGHT)
     c.run_frames(2)
@@ -61,7 +68,7 @@ def main():
         print('FAIL', f)
     if fails:
         sys.exit(1)
-    print('ok   boot: Mode 0, IDLE, ο δείκτης κινείται')
+    print('ok   boot: Mode 0, μενού, PLAY, ο δείκτης κινείται')
 
 
 if __name__ == '__main__':

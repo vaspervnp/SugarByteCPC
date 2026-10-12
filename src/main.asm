@@ -12,6 +12,7 @@ sprites_end:
         assert sprites_end <= CELL_SCR
 
         include "vars.asm"
+        assert snd_end <= STACK_TOP-512 && (board&#FF) == 0
         assert (keymap&#FF)+10 < 256 && (gap&#FF)+2*COLS < 256 && (spawn&#FF)+COLS < 256 && vars_end-vars_start < 256
 
         org CODE_ORG
@@ -23,11 +24,9 @@ start:
         call build_tables
         call snd_init
         ei
-        ld a,r                  ; σπόρος: ποτέ μηδέν
-        ld l,a
-        ld h,#A5
-        ld (seed),hl
-        jp game_new
+        call cls
+        call menu_start
+        jp main_loop
 
         include "hw.asm"
         include "gfx.asm"
@@ -38,6 +37,8 @@ start:
         include "sound.asm"
         include "level.asm"
         include "codes.asm"
+        include "menu.asm"
+        include "hudgfx.asm"
         include "../build/levels.asm"
 NLEVELS_BCD     equ (NLEVELS/10)*16+NLEVELS-(NLEVELS/10)*10
         include "game.asm"

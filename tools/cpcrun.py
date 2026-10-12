@@ -216,26 +216,32 @@ class CPC:
         return addr + (int(off) if off else 0)
 
     def screenshot(self, path):
-        """640x400: each Mode 0 pixel 4x2, each Mode 1 pixel 2x2."""
-        base = ((self.crtc[12] & 0x30) << 10) | ((self.crtc[12] & 0x03) << 9) | (self.crtc[13] << 1)
-        img = Image.new('RGB', (640, 400))
+        """Η οθόνη όπως τη δείχνει ο CRTC: R1 x 2 bytes, R6 x 8 γραμμές, με τη
+        διεύθυνση MA να κάνει κρατούμενο στη σελίδα (overscan 32 KB). Κάθε pixel
+        Mode 0 γίνεται 4x2, Mode 1 2x2 — η αναλογία της τηλεόρασης."""
+        r1 = self.crtc[1] or 40
+        r6 = self.crtc[6] or 25
+        start = ((self.crtc[12] & 0x3F) << 8) | self.crtc[13]
+        w, h = r1 * 2, r6 * 8
+        img = Image.new('RGB', (w * 8, h * 2))
         px = img.load()
         mem = self.m.memory
-        for y in range(200):
-            for xb in range(80):
-                addr = (base & 0xC000) | ((base + (y >> 3) * 80 + xb) & 0x7FF) | ((y & 7) << 11)
+        for y in range(h):
+            for xb in range(w):
+                ma = (start + (y >> 3) * r1 + (xb >> 1)) & 0x3FFF
+                addr = ((ma >> 12) << 14) | ((y & 7) << 11) | ((ma & 0x3FF) << 1) | (xb & 1)
                 b = mem[addr]
                 if self.mode == 0:
                     pens = [((b >> 7) & 1) | ((b >> 2) & 2) | ((b >> 3) & 4) | ((b << 2) & 8),
                             ((b >> 6) & 1) | ((b >> 1) & 2) | ((b >> 2) & 4) | ((b << 3) & 8)]
                 else:
                     pens = [((b >> (7 - n)) & 1) | (((b >> (3 - n)) & 1) << 1) for n in range(4)]
-                w = 8 // len(pens)
+                pw = 8 // len(pens)
                 for n, pen in enumerate(pens):
                     rgb = HW_RGB[self.inks[pen]]
-                    for dx in range(w):
+                    for dx in range(pw):
                         for dy in (0, 1):
-                            px[xb * 8 + n * w + dx, y * 2 + dy] = rgb
+                            px[xb * 8 + n * pw + dx, y * 2 + dy] = rgb
         img.save(path)
 
 

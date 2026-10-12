@@ -1,6 +1,6 @@
 ; hw.asm — Gate Array, CRTC, VSYNC, πληκτρολόγιο
 
-; Mode 0, χωρίς ROM, η παλέτα του plan.md §2, οθόνη στο #C000.
+; Mode 0, χωρίς ROM, η παλέτα του plan.md §2, οθόνη overscan 192x248 στο #8000.
 hw_init:
         ld bc,#7F8C             ; Mode 0, κάτω και πάνω ROM κλειστές
         out (c),c
@@ -15,20 +15,33 @@ hw_init:
         ld a,e
         cp 17
         jr c,.ink
-        ld bc,#BC0C             ; CRTC R12/R13: οθόνη στο #C000, offset 0
-        out (c),c
-        ld bc,#BD30
-        out (c),c
-        ld bc,#BC0D
-        out (c),c
-        ld bc,#BD00
-        out (c),c
+        ld hl,crtc_tab          ; ο CRTC: overscan
+.crtc   ld a,(hl)
+        cp #FF
+        jr z,.crtc_done
+        ld b,#BC
+        out (c),a
+        inc hl
+        ld a,(hl)
+        inc hl
+        inc b
+        out (c),a
+        jr .crtc
+.crtc_done
         ld a,#C3                ; #0038: JP int_handler (IM 1)
         ld (#0038),a
         ld hl,int_handler
         ld (#0039),hl
         im 1
         ret
+
+; Overscan 192x248 (cpcwiki, Programming:Overscan). R12 bits 2-3 = σελίδα
+; 32 KB: η διεύθυνση κάνει κρατούμενο από το #8000 στο #C000. R13 = 16 words:
+; η γραμμή χαρακτήρων 21 ξεκινά ακριβώς στο #C000, καμία δεν κόβεται στη μέση.
+crtc_tab:
+        db 0,63, 1,48, 2,50, 3,#8E, 4,38, 5,0, 6,31, 7,34, 9,7
+        db 12,#2C, 13,16
+        db #FF
 
 ; Τα χρώματα του Gate Array (| #40) για τα pens 0-15 και το περίγραμμα.
 ink_tab:

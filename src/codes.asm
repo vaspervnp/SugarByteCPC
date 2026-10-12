@@ -2,10 +2,8 @@
 ;
 ; Κάθε πίστα έχει έναν κωδικό 4 ψηφίων (level_codes, από το tools/levels.py).
 ; Το HUD δείχνει πάντα τον κωδικό της τρέχουσας πίστας, και στη νίκη της
-; επόμενης. ESC: εισαγωγή κωδικού — ←→ ψηφίο, ↑↓ αλλάζει, SPACE πάει στην
-; πίστα, ESC ακυρώνει.
-
-HUD_CODE_Y      equ 176
+; επόμενης. Στο μενού, LEVELS: «CODE 0000» — ←→ ψηφίο, ↑↓ αλλάζει, SPACE
+; δέχεται, ESC ακυρώνει.
 
 ; A = πίστα: το λουκέτο και ο κωδικός της στο HUD.
 hud_show_code:
@@ -13,20 +11,18 @@ hud_show_code:
         ld hl,level_codes
         call add_hl_a
         push hl
-        ld a,HUD_CODE_Y
+        ld a,ICON_LOCK
+        ld bc,HUD_MOVES_ICON_Y*256+HUD_CODE_ICON_X
+        call draw_icon
+        ld a,HUD_MOVES_ICON_Y+HUD_TEXT_DY
         ld (digit_y),a
-        ld a,HUD_ICONS+4
-        ld c,HUD_ICON_XB
-        call draw_glyph
         pop hl
         ld b,2
-        ld c,HUD_DIGIT_XB
+        ld c,HUD_CODE_X
         jp draw_bcd
 
-; ESC από IDLE, OVER ή WIN: αρχίζει η εισαγωγή, από 0000.
+; Από το μενού: η εισαγωγή αρχίζει από 0000, πάνω στο πιάτο LEVELS.
 start_code:
-        ld a,(state)
-        ld (code_prev),a
         xor a
         ld (code_pos),a
         ld (anim_k),a
@@ -44,6 +40,9 @@ start_code:
 st_code:
         ld hl,anim_k
         inc (hl)
+        ld a,(hl)
+        and 7
+        call z,draw_code_entry  ; το ψηφίο αναβοσβήνει
         ld a,(joy_edge)
         and J_ESC
         jr nz,.cancel
@@ -52,7 +51,7 @@ st_code:
         jr nz,.enter
         call get_dir
         or a
-        jp z,draw_code_entry
+        ret z
         ld b,a
         ld a,(code_pos)
         bit 2,b                 ; J_LEFT
@@ -81,13 +80,9 @@ st_code:
         xor a                   ; το ψηφίο φαίνεται αμέσως
         ld (anim_k),a
         jp draw_code_entry
-.cancel ld a,(code_prev)
+.cancel ld a,S_MENU
         ld (state),a
-        or a                    ; S_IDLE: ο δείκτης ξανά
-        ld a,(cursor)
-        call z,mark_dirty
-        ld a,(cur_level)
-        jp hud_show_code
+        jp draw_code_entry
 .enter  ld a,(code_dig)         ; τα 4 ψηφία σε 2 bytes BCD
         rlca
         rlca
@@ -123,38 +118,13 @@ st_code:
         jp play_sfx
 .found  ld a,b
         ld (cur_level),a
-        pop hl                  ; έξω από το step_state: η πίστα από την αρχή
-        jp game_new
+        ld a,S_MENU
+        ld (state),a
+        ld hl,sfx_collect
+        call play_sfx
+        ; fall through: το πιάτο ξαναγράφει «LEVEL NN»
 
-; Τα 4 ψηφία· αυτό που αλλάζει αναβοσβήνει.
+; Το πιάτο LEVELS: «CODE dddd» όσο γράφεται ο κωδικός, αλλιώς «LEVEL NN».
 draw_code_entry:
-        ld a,HUD_CODE_Y
-        ld (digit_y),a
-        ld c,HUD_DIGIT_XB
-        ld hl,code_dig
-        ld b,0
-.dig    ld a,(code_pos)
-        cp b
-        jr nz,.show
-        ld a,(anim_k)
-        and 8
-        jr z,.show
-        push bc                 ; σβηστό: σκέτο φόντο
-        push hl
-        ld a,HUD_CODE_Y
-        ld b,HUD_H
-        ld de,HUD_W*256+PB_BLUE
-        call fill_rect
-        pop hl
-        pop bc
-        jr .next
-.show   ld a,(hl)
-        call draw_glyph
-.next   inc hl
-        inc c
-        inc c
-        inc b
-        ld a,b
-        cp 4
-        jr c,.dig
-        ret
+        ld a,MI_LEVELS
+        jp draw_plate
