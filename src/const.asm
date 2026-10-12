@@ -10,7 +10,12 @@ ROWS            equ 8
 EMPTY           equ 7           ; board[]: χρώμα 7 = κενό κελί
 BOMB            equ 6           ; board[]: χρώμα 6 = βόμβα χρώματος
 INGREDIENT      equ #20         ; board[] bit 5: υλικό· bit 0: 0 κεράσι, 1 φουντούκι
-DEMO_INGREDIENTS equ #02        ; BCD: πόσα υλικά ώσπου να έρθουν οι πίστες
+LEVEL_HEAD      equ 10          ; bytes κεφαλίδας πίστας (tools/levels.py)
+G_SCORE         equ 0           ; στόχοι πίστας
+G_JELLY         equ 1
+G_INGREDIENTS   equ 2
+G_BOTH          equ 3
+G_ENDLESS       equ #FF         ; χωρίς στόχο (τα tests)
 F_STRIPED_H     equ 1<<3        ; board[] bits 3-4: η μορφή
 F_STRIPED_V     equ 2<<3
 F_WRAPPED       equ 3<<3
@@ -53,7 +58,6 @@ FALL_STEPS      equ 2           ; ένα κελί πτώσης σε 2 βήματ
 FALL_STEP_Y     equ CELL_H/FALL_STEPS
 REP_FIRST       equ 12          ; repeat του δείκτη: πρώτη επανάληψη
 REP_NEXT        equ 3           ; ... και μετά
-START_MOVES     equ #30         ; BCD
 
 ; --- η είσοδος ---------------------------------------------------------------
 J_UP            equ 1
@@ -71,6 +75,7 @@ S_CLEAR        equ 3
 S_FALL         equ 4
 S_OVER         equ 5
 S_BEAM         equ 6
+S_WIN          equ 7
 MAX_BEAMS       equ 16
 BIG_CLEAR       equ 24          ; πάνω από τόσα κελιά: σκάσιμο σε 2 φάσεις, όχι 4
 

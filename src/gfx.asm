@@ -238,10 +238,13 @@ draw_candy_at:
         ret c
         ld hl,candy_ptr
         call ptr_lookup
-; DE = πηγή με μάσκα 12x24, C = byte στήλης, B = γραμμή οθόνης (με κόψιμο)
+; DE = πηγή με μάσκα 12x24, C = byte στήλης, B = γραμμή οθόνης. Ό,τι είναι πάνω
+; από το clip_y (συνήθως BOARD_Y) κόβεται.
 draw_masked_at:
+        ld a,(clip_y)
+        ld l,a
         ld a,b
-        sub BOARD_Y
+        sub l
         cp 200
         jr c,.whole
         neg                     ; γραμμές πάνω από το ταμπλό
@@ -261,10 +264,13 @@ draw_masked_at:
         add hl,de
         ex de,hl
         pop bc
-        ld b,a
+        ld b,a                  ; B = γραμμές που κόβονται
         ld a,CELL_H
-        sub b
-        ld b,BOARD_Y
+        sub b                   ; A = γραμμές που φαίνονται
+        push af
+        ld a,(clip_y)
+        ld b,a                  ; από τη γραμμή του κοψίματος
+        pop af
         jr .go
 .whole  ld a,CELL_H
 .go     push af

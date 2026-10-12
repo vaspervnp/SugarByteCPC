@@ -241,6 +241,25 @@ sfx_over:                       ; G4 E4 C4, κατεβαίνοντας
         rend
         db 0,0,#FF,0
 
+sfx_win:                        ; C4 E4 G4 C5, και το C5 κρατάει
+        repeat 4
+        dw 239
+        db 13,0
+        rend
+        repeat 4
+        dw 190
+        db 13,0
+        rend
+        repeat 4
+        dw 159
+        db 13,0
+        rend
+        repeat 14,n
+        dw 119
+        db 14-n,0
+        rend
+        db 0,0,#FF,0
+
 ; Το σκάσιμο: ένα «ποπ» που ανεβαίνει, ψηλότερα σε κάθε βαθμίδα της αλυσίδας.
 pop_tab:
         dw 200,178,159,142,126,112

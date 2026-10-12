@@ -3,7 +3,7 @@ run 20
 shot start
 board
 expect state 0
-expect moves #30
+expect moves #20
 run 1 right
 run 3
 run 1 down

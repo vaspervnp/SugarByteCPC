@@ -39,6 +39,8 @@ seed            defs 2
 gap             defs COLS       ; ανά κολόνα: το χαμηλότερο κενό, #FF = κανένα
 nextc           defs COLS       ; ανά κολόνα: το candy που μπαίνει από πάνω
 segtop          defs COLS       ; ανά κολόνα: πρώτη γραμμή του τμήματος που πέφτει
+spawn           defs COLS       ; ανά κολόνα: 1 = το τμήμα γεμίζει από πάνω
+clip_y          defs 1          ; γραμμή οθόνης: πάνω της τα candies κόβονται
 fall_c0         defs 1
 nb              defs 4          ; οι γείτονες ενός κελιού
 choc_broken     defs 1          ; έσπασε σοκολάτα σε αυτή την κίνηση
@@ -57,6 +59,15 @@ beams           defs MAX_BEAMS  ; γραμμή 0-7, ή κολόνα | #80
 clear_n         defs 1          ; πόσα κελιά σκάνε
 beam_fr         defs 1
 beam_step       defs 1
+lv_goal         defs 1          ; η κεφαλίδα της πίστας, με τη σειρά του levels.py
+lv_star1        defs 2
+lv_moves        defs 1
+lv_colours      defs 1
+lv_ingr         defs 1
+lv_star2        defs 2
+lv_star3        defs 2
+lv_number       defs 1
+win_n           defs 1
 boom            defs 1          ; έσκασε περιτύλιγμα σε αυτό το RESOLVE
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
@@ -66,6 +77,7 @@ vars_end
 
 ; Ο ήχος: έξω από τα vars_start..vars_end, γιατί το game_new τα μηδενίζει ενώ
 ; η διακοπή τρέχει.
+cur_level       defs 1          ; η πίστα, από 0 — δεν τη μηδενίζει το game_new
 snd_start
 psg_shadow      defs 11         ; οι καταχωρητές 0-10 του AY
 int_div         defs 1          ; 6 διακοπές = ένα καρέ

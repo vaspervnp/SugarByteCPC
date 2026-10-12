@@ -18,7 +18,7 @@ run 3
 shot swap_mid
 until state 0 - 30
 expectboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
-expect moves #30
+expect moves #20
 expect score+2 0
 
 ; έγκυρη: (2,6) <-> (2,7) φτιάχνει 0 0 0 στην κάτω γραμμή
@@ -30,7 +30,7 @@ run 1
 run 1 fire
 until state 3 - 20
 shot swap_clear
-expect moves #29
+expect moves #19
 expect score+2 #60
 until state 4 - 20
 shot swap_fall

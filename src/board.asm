@@ -395,6 +395,27 @@ blocked:
         and 7
         ret
 
+; L = κελί -> Z αν αυτό και όλα από πάνω του στην κολόνα είναι τρύπες.
+; Δεν πειράζει HL.
+holes_above:
+        push hl
+.l      set 7,l
+        ld a,(hl)
+        res 7,l
+        and 7
+        cp C_HOLE
+        jr nz,.no
+        ld a,l
+        sub COLS
+        ld l,a
+        jr nc,.l
+        pop hl
+        xor a
+        ret
+.no     pop hl
+        or 1
+        ret
+
 ; gap[x] = γραμμή του κενού που γεμίζει (#FF = κανένα), segtop[x] = πρώτη
 ; γραμμή του τμήματος, nextc[x] = το candy που μπαίνει. NZ αν κάτι πέφτει.
 fall_scan:
@@ -420,10 +441,11 @@ fall_scan:
         sub COLS
         ld l,a
         call blocked
-        jr nz,.up               ; εμπόδιο πριν από candy: δεν γεμίζει
+        jr nz,.wall             ; εμπόδιο πριν από candy: μόνο αν από πάνω είναι τρύπες
         ld a,(hl)
         cp EMPTY
         jr z,.scan
+        ld ixl,0
 .seg    dec e                   ; βρέθηκε candy: πού αρχίζει το τμήμα;
         jp m,.top
         ld a,l
@@ -431,15 +453,30 @@ fall_scan:
         ld l,a
         call blocked
         jr z,.seg
-        inc e
+        call holes_above        ; από πάνω μόνο τρύπες: εκεί μπαίνουν καινούργια
+        jr nz,.inner
+        ld ixl,1
+.inner  inc e
         ld a,e
         jr .store
+.wall   call holes_above
+        jr nz,.up
+        inc e
+        ld a,e
+        ld ixl,1
+        jr .store
 .top    xor a
+        ld ixl,1
 .store  ld hl,segtop
         ld b,a
         ld a,c
         call add_hl_a
         ld (hl),b
+        ld hl,spawn
+        ld a,c
+        call add_hl_a
+        ld a,ixl
+        ld (hl),a
         ld ixh,1
         ld a,d
         jr .gap
@@ -460,17 +497,17 @@ fall_scan:
         cp #FF
         jr z,.nofill
         push hl
-        ld hl,segtop
+        ld hl,spawn
         ld a,c
         call add_hl_a
         ld a,(hl)
         pop hl
         or a
-        call z,try_ingredient
+        call nz,try_ingredient
 .nofill inc c
         ld a,c
         cp COLS
-        jr c,.col
+        jp c,.col
         ld a,ixh
         or a
         ret
@@ -547,21 +584,28 @@ fall_draw:
         jr .candy
 .new    pop bc
         push bc
-        ld a,d                  ; καινούργιο μόνο αν το τμήμα αρχίζει στην κορυφή
+        ld hl,spawn             ; καινούργιο μόνο αν το τμήμα γεμίζει από πάνω
+        ld a,c
+        call add_hl_a
+        ld a,(hl)
         or a
-        jr nz,.done
+        jr z,.done
         ld hl,nextc
         ld a,c
         call add_hl_a
         ld e,(hl)
-        ld a,c
-        call cell_xy            ; C = στήλη, B = BOARD_Y
+        ld a,(fall_c0)          ; μπαίνει από την κορυφή του τμήματος, κομμένο εκεί
+        call cell_xy
+        ld a,b
+        ld (clip_y),a
         ld a,(fall_y)
         add a,b
-        sub CELL_H              ; πάνω από το ταμπλό: κόβεται
+        sub CELL_H
         ld b,a
         ld a,e
         call draw_candy_at
+        ld a,BOARD_Y
+        ld (clip_y),a
 .done   pop bc
 .next   inc c
         ld a,c
@@ -586,9 +630,12 @@ fall_needs_bg:
         ld a,(hl)
         cp EMPTY
         ret
-.top    ld a,l
-        cp COLS
-        sbc a,a                 ; #FF (NZ) αν είναι η γραμμή 0
+.top    ld a,l                  ; η κορυφή: μόνο αν μπαίνει καινούργιο
+        and 7
+        ld hl,spawn
+        call add_hl_a
+        ld a,(hl)
+        or a
         ret
 
 ; Κάθε τμήμα που πέφτει κατεβαίνει μία θέση.
@@ -629,16 +676,19 @@ fall_commit:
         sub COLS
         ld l,a
         jr .shift
-.top    ld a,d                  ; η κορυφή του τμήματος: καινούργιο ή κενό
+.top    push hl                 ; η κορυφή του τμήματος: καινούργιο ή κενό
+        ld hl,spawn
+        ld a,c
+        call add_hl_a
+        ld a,(hl)
         or a
         ld a,EMPTY
-        jr nz,.put
-        push hl
+        jr z,.empty
         ld hl,nextc
         ld a,c
         call add_hl_a
         ld a,(hl)
-        pop hl
+.empty  pop hl
 .put    ld (hl),a
 .next   inc c
         ld a,c

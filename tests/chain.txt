@@ -34,6 +34,6 @@ shot over
 run 1 fire
 run 1
 expect state 0
-expect moves #30
+expect moves #20
 expect score 0
 expect score+2 0

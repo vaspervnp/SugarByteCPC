@@ -1,0 +1,91 @@
+; Οι πίστες (plan.md §11): φόρτωμα, στόχοι, νίκη, ήττα, αστέρια.
+run 20
+expect cur_level 0
+expect lv_goal 0
+expect moves #20
+expect ncolours 4
+shot level1
+
+; στόχος πόντων: 3.000 -> νίκη μετά την επόμενη κίνηση, 1 αστέρι
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+poke lv_goal 0
+poke score+1 #30
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 7 - 600
+expect win_n 1
+shot level_win
+; SPACE: η πίστα 2, με τις τρύπες στις γωνίες
+run 1 fire
+run 1
+expect state 0
+expect cur_level 1
+expect moves #18
+expect score+1 0
+expectcells o......o ........ ........ ........ ........ ........ ........ o......o
+expectboard .??????. ???????? ???????? ???????? ???????? ???????? ???????? .??????.
+
+; στόχος ζελέ: όταν φύγει και το τελευταίο, νίκη· με 8.000 πόντους, 2 αστέρια
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+setcells ........ ........ ........ ........ ........ ........ ........ jjj.....
+poke lv_goal 1
+poke score+1 #75
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 7 - 600
+expect win_n 2
+
+; ήττα: τελείωσαν οι κινήσεις χωρίς στόχο -> η ίδια πίστα ξανά
+run 1 fire
+run 1
+expect cur_level 2
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+poke lv_goal 0
+poke moves 1
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 5 - 600
+run 1 fire
+run 1
+expect state 0
+expect cur_level 2
+expect moves #18
+expect score+1 0
+
+; πίστα 17: ζελέ και υλικά μαζί
+poke cur_level 16
+poke state 5
+run 1 fire
+run 1
+expect lv_goal 3
+expect ingr_left #02
+expect ncolours 6
+shot level17
+
+; τρύπες στην κορυφή της κολόνας: τα καινούργια μπαίνουν κάτω από αυτές
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+setcells o....... o....... ........ ........ ........ ........ ........ ........
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 0 - 600
+expectboard .??????? .??????? #??????? #??????? #??????? #??????? #??????? #???????

@@ -75,31 +75,3 @@ collect_ingredients:
         call play_sfx
         or 1                    ; NZ
         ret
-
-; Στο HUD: ένα κεράσι και «× NN» — πόσα υλικά μένουν να κατέβουν.
-HUD_GOAL_Y      equ 42
-hud_goal_init:
-        ld a,HUD_GOAL_Y
-        call line_addr
-        ld bc,HUD_XB+2
-        add hl,bc
-        ld a,CANDY_INGREDIENT
-        push hl
-        ld hl,candy_ptr
-        call ptr_lookup
-        pop hl
-        ld a,CELL_H
-        call blit_masked
-        ld a,HUD_GOAL_Y+8
-        ld (digit_y),a
-        ld a,HUD_SYMBOLS+2      ; ×
-        ld c,HUD_XB+10
-        jp draw_glyph
-
-hud_goal_update:
-        ld a,HUD_GOAL_Y+8
-        ld (digit_y),a
-        ld hl,ingr_left
-        ld b,1
-        ld c,HUD_XB+12
-        jp draw_bcd

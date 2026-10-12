@@ -16,23 +16,16 @@ game_new:
         djnz .clr2
         pop de
         ld (seed),de
-        ld a,6
-        ld (ncolours),a
-        ld a,START_MOVES
-        ld (moves),a
-        ld a,DEMO_INGREDIENTS
-        ld (ingr_left),a
-        ld (ingr_spawn),a
         ld a,7
         ld (ingr_odds),a
+        ld a,BOARD_Y
+        ld (clip_y),a
         ld a,#FF
         ld (sel),a
         ld a,3*COLS+3
         ld (cursor),a
-        ld hl,demo_cells
-        ld de,cell
-        ld bc,COLS*ROWS
-        ldir
+        ld a,(cur_level)
+        call load_level
         call fill_board
         call draw_board_all
         call hud_init
@@ -70,7 +63,7 @@ step_state:
         jp (hl)
 
 state_tab:
-        dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam
+        dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam, st_win
 
 ; ---------------------------------------------------------------------------
 ; IDLE: ο δείκτης κινείται και αναβοσβήνει, το SPACE επιλέγει και ανταλλάσσει.
@@ -554,7 +547,9 @@ resolve_fall:
         inc (hl)
         call find_matches
         jp nz,start_clear
-        ld a,(moves)            ; SETTLE
+        call goal_met           ; SETTLE
+        jr c,.win
+        ld a,(moves)
         or a
         jr z,.over
         call spread_chocolate
@@ -573,9 +568,31 @@ resolve_fall:
         ld (state),a
         ld hl,sfx_over
         jp play_sfx
+.win    xor a
+        ld (anim_k),a
+        ld a,S_WIN
+        ld (state),a
+        call draw_win_stars
+        ld hl,sfx_win
+        jp play_sfx
 
 ; ---------------------------------------------------------------------------
-; OVER: οι κινήσεις τελείωσαν. Το περίγραμμα αναβοσβήνει· SPACE = ξανά.
+; WIN: ο στόχος επιτεύχθηκε. Τα αστέρια στο ταμπλό· SPACE = η επόμενη πίστα.
+st_win:
+        ld a,(joy_edge)
+        and J_FIRE
+        ret z
+        ld a,(cur_level)
+        inc a
+        cp NLEVELS
+        jr c,.next
+        xor a                   ; μετά την τελευταία, από την αρχή
+.next   ld (cur_level),a
+        pop hl                  ; έξω από το step_state
+        jp game_new
+
+; ---------------------------------------------------------------------------
+; OVER: οι κινήσεις τελείωσαν. Το περίγραμμα αναβοσβήνει· SPACE = η ίδια πίστα ξανά.
 st_over:
         ld hl,anim_k
         inc (hl)

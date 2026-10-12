@@ -234,20 +234,3 @@ spread_chocolate:
         ld c,a
         djnz .cell
         ret
-
-; Ένα ταμπλό επίδειξης ώσπου να έρθουν οι πίστες (βήμα 15): ζελέ στη μέση,
-; γλάσο, σοκολάτα και γλυκόριζα στη βάση, όπου δεν φράζουν τίποτα από κάτω.
-J1      equ 1<<JELLY_SHIFT
-J2      equ 2<<JELLY_SHIFT
-I3      equ C_ICING+(3<<ICING_SHIFT)
-CH      equ C_CHOCOLATE
-LI      equ C_LICORICE
-demo_cells:
-        db 0, 0, 0, 0, 0, 0, 0, 0
-        db 0,J1,J1, 0, 0,J1,J1, 0
-        db 0,J1,J2,J2,J2,J2,J1, 0
-        db 0, 0,J2,J2,J2,J2, 0, 0
-        db 0, 0, 0,J1,J1, 0, 0, 0
-        db 0, 0, 0, 0, 0, 0, 0, 0
-        db 0, 0, 0, 0, 0, 0, 0,LI
-        db CH,0, 0,I3,I3, 0, 0,LI

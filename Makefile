@@ -12,7 +12,10 @@ $(B):
 
 # Το rasm γράφει μόνο του το build/sugar.bin (save στο src/main.asm): #0100 ώς το
 # τέλος των sprites, ένα κομμάτι.
-$(B)/sugar.bin $(B)/sugar.sym: $(SRC) assets/sprites.asm | $(B)
+$(B)/levels.asm: levels/levels.txt tools/levels.py | $(B)
+	$(PY) tools/levels.py $< $@
+
+$(B)/sugar.bin $(B)/sugar.sym: $(SRC) assets/sprites.asm $(B)/levels.asm | $(B)
 	$(RASM) src/main.asm -os $(B)/sugar.sym -s -sl
 
 # RUN"SUGAR — φορτώνει στο #0100 και ξεκινάει εκεί.

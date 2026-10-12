@@ -20,12 +20,13 @@ Script lines (';' starts a comment):
   setboard <row0> ... <row7>    write the board (8 cells a row, see cell_value) and
                                 queue every cell for redraw through the game's dirty list;
                                 every cell becomes a plain one, no ingredient
-                                will drop in unless the script pokes ingr_spawn
+                                will drop in unless the script pokes ingr_spawn,
+                                and the level has no goal (lv_goal = G_ENDLESS)
   setcells <row0> ... <row7>    the cell types (one char a cell, see CELL_CHARS); the
                                 board under blockers is emptied. Use after setboard.
   expectcells <row0> ... <row7> assert the cell types (? matches anything)
   countcells <char> <n>         assert how many cells are of that type
-  expectboard <row0> ... <row7> assert the board (? matches anything)
+  expectboard <row0> ... <row7> assert the board (? matches anything, # anything not empty)
   psg <reg> <value>             assert a PSG (AY) register's current value
   psgon <reg>                   assert a PSG volume register is non-zero (something plays)
 
@@ -381,6 +382,7 @@ def main():
             cpc.poke(syms['DQ_TAIL'], 0)
             cpc.poke(syms['DQ_N'], 64)
             cpc.poke(syms['INGR_SPAWN'], 0)         # κανένα υλικό στην τύχη
+            cpc.poke(syms['LV_GOAL'], 0xFF)         # καμία νίκη: G_ENDLESS
             cpc.poke(syms['INGR_BOARD'], sum((cpc.peek(b + i) & 0x27) in (0x20, 0x21) for i in range(64)))
         elif cmd == 'setcells':
             for i, ch in enumerate(''.join(st[1:9])):
@@ -407,7 +409,7 @@ def main():
             b = syms['BOARD']
             want = ''.join(st[1:9])
             got = ''.join(cell_char(cpc.peek(b + i)) for i in range(64))
-            ok = all(w in ('?', g) for w, g in zip(want, got))
+            ok = all(w in ('?', g) or (w == '#' and g != '.') for w, g in zip(want, got))
             failures += not ok
             print(f"{'ok  ' if ok else 'FAIL'} board" + ('' if ok else
                   '\n  got      ' + ' '.join(got[i:i + 8] for i in range(0, 64, 8)) +
