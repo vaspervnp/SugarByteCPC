@@ -15,6 +15,7 @@
 
 | | |
 |---|---|
+| **[`manual.md`](manual.md)** · [`manual.el.md`](manual.el.md) | Το εγχειρίδιο του παίκτη, αγγλικά και ελληνικά — και σε PDF: [`docs/manual-en.pdf`](docs/manual-en.pdf), [`docs/manual-el.pdf`](docs/manual-el.pdf). |
 | **[`plan.md`](plan.md)** | **Ξεκίνα από εδώ.** Τι είναι κάθε asset και πώς χτίζεται το παιχνίδι: χάρτης μνήμης 64 KB, δομές, αλγόριθμοι, ρουτίνες blit, σειρά υλοποίησης. |
 | [`assets/`](assets/) | Τα γραφικά. **Παράγονται** — δες [`assets/README.md`](assets/README.md). |
 | [`src/`](src/) | Ο κώδικας Z80 (rasm). Ξεκινάει από το [`main.asm`](src/main.asm). |
@@ -70,14 +71,16 @@ AY**: «Sugar Byte!» στην εκκίνηση, «Sweet!» και «Delicious!�
 για γραμμική κλίμακα, κρυμμένα στα κενά της οθόνης overscan.
 
 ```bash
-make            # build/sugar.dsk — RUN"SUGAR
+make            # build/sugar.dsk — RUN"SUGAR, και build/sugar.cdt — RUN""
+make manuals    # docs/manual-en.pdf, docs/manual-el.pdf (θέλει το fpdf2)
 make test       # τα σενάρια του tests/, headless
 make boot       # η δισκέτα σε εξομοιωτή 6128 (θέλει το ../CPCTools/cpcemu)
 ```
 
 Η δισκέτα: το `RUN"SUGAR` τρέχει πρώτα το `SUGAR.BAS` ([`src/sugar.bas`](src/sugar.bas)),
 που δείχνει την οθόνη REVIVE8BIT (`assets/revive8b.scr`) για 10 δευτερόλεπτα —
-ή ώς το SPACE — και μετά φορτώνει το `SUGAR.BIN`.
+ή ώς το SPACE — και μετά φορτώνει το `SUGAR.BIN`. Η κασέτα (`build/sugar.cdt`,
+από το `tools/mkcdt.py`) έχει μόνο το `SUGAR.BIN`, χωρίς την οθόνη: `RUN""`.
 
 Χειρισμός: βελάκια ή joystick, SPACE / fire για επιλογή και ανταλλαγή, M για
 μουσική ναι/όχι, ESC πίσω στο μενού. Στο μενού, LEVEL → κωδικός: ←→ ψηφίο, ↑↓

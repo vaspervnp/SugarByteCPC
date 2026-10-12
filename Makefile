@@ -5,7 +5,7 @@ B    := build
 
 SRC  := $(wildcard src/*.asm)
 
-all: $(B)/sugar.dsk
+all: $(B)/sugar.dsk $(B)/sugar.cdt
 
 $(B):
 	mkdir -p $@
@@ -33,6 +33,22 @@ $(B)/sugar.dsk: $(B)/sugar.bin src/sugar.bas assets/revive8b.scr
 	$(IDSK) $@ -i assets/revive8b.scr -t 1 -c C000 -e C000 -f
 	$(IDSK) $@ -i $(B)/sugar.bin -t 1 -c 0100 -e 0100 -f
 
+# Η κασέτα: μόνο το SUGAR.BIN, χωρίς την οθόνη REVIVE8BIT. 2.000 baud,
+# ~3,5 λεπτά. |TAPE (στο 6128) και RUN"".
+$(B)/sugar.cdt: $(B)/sugar.bin tools/mkcdt.py
+	$(PY) tools/mkcdt.py $(B)/sugar.bin $@ --name=SUGAR --load=0100
+
+# Τα εγχειρίδια σε PDF (A5, σαν το βιβλιαράκι της θήκης). Θέλουν το fpdf2,
+# γι' αυτό τα PDF είναι στο repo.
+SHOTS := $(wildcard docs/*.png)
+manuals: docs/manual-en.pdf docs/manual-el.pdf
+
+docs/manual-en.pdf: manual.md $(SHOTS) tools/mkmanual.py
+	$(PY) tools/mkmanual.py $< $@
+
+docs/manual-el.pdf: manual.el.md $(SHOTS) tools/mkmanual.py
+	$(PY) tools/mkmanual.py $< $@
+
 # Headless σενάρια (tests/*.txt) στο tools/cpcrun.py· screenshots στο build/shots/.
 test: $(B)/sugar.bin
 	@set -e; for t in tests/*.txt; do \
@@ -47,4 +63,4 @@ boot: $(B)/sugar.dsk
 clean:
 	rm -rf $(B)
 
-.PHONY: all test boot clean
+.PHONY: all test boot manuals clean
