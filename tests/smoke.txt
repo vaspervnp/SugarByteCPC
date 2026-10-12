@@ -1,0 +1,15 @@
+; Το ταμπλό στήνεται, ο δείκτης κινείται, η επιλογή ανάβει.
+run 20
+shot start
+board
+expect state 0
+expect moves #30
+run 1 right
+run 3
+run 1 down
+run 3
+expect cursor 36
+run 1 fire
+run 2
+expect sel 36
+shot selected

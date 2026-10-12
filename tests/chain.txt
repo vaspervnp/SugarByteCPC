@@ -1,0 +1,39 @@
+; Αλυσίδα: 0 0 0 κάτω σκάει, η πτώση φέρνει 1 1 1 -> δεύτερη τριάδα με x2.
+run 20
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00110123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 4 - 30
+until state 3 - 60
+expect chain 2
+shot chain_pop
+until state 0 - 600
+; 60 + 60 x 2 = 180, αν η τυχαία πτώση δεν έφερε κι άλλη
+expect score+1 #01
+expect score+2 #80
+expectboard ???????? ???????? ???????? ???????? ???????? ???????? ???????? ????0123
+
+; τέλος κινήσεων: με 1 κίνηση, μία ανταλλαγή τελειώνει το παιχνίδι
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00110123
+poke moves 1
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 5 - 600
+expect moves 0
+shot over
+run 1 fire
+run 1
+expect state 0
+expect moves #30
+expect score 0
+expect score+2 0

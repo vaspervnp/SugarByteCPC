@@ -1,0 +1,40 @@
+; Ανταλλαγές: άκυρη γυρίζει πίσω, έγκυρη σκάει, πέφτει και ξαναγεμίζει.
+run 20
+;           γραμμή 0 ... γραμμή 7 — καμία τριάδα, μία κίνηση: 50 <-> 58
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+run 20
+shot swap_before
+expect state 0
+
+; άκυρη: (0,0) <-> (1,0)
+poke cursor 0
+run 1 fire
+run 1
+run 1 right
+run 1
+run 1 fire
+expect state 1
+run 3
+shot swap_mid
+until state 0 - 30
+expectboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+expect moves #30
+expect score+2 0
+
+; έγκυρη: (2,6) <-> (2,7) φτιάχνει 0 0 0 στην κάτω γραμμή
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 3 - 20
+shot swap_clear
+expect moves #29
+expect score+2 #60
+until state 4 - 20
+shot swap_fall
+until state 0 - 400
+shot swap_after
+expectboard ???34404 01250123 23412345 45034501 01250123 23412345 45034501 01150123
+expect sel #FF
