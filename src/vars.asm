@@ -42,6 +42,10 @@ segtop          defs COLS       ; ανά κολόνα: πρώτη γραμμή �
 fall_c0         defs 1
 nb              defs 4          ; οι γείτονες ενός κελιού
 choc_broken     defs 1          ; έσπασε σοκολάτα σε αυτή την κίνηση
+ingr_left       defs 1          ; BCD: υλικά που μένουν να κατέβουν
+ingr_spawn      defs 1          ; υλικά που μένουν να μπουν από την κορυφή
+ingr_board      defs 1          ; υλικά στο ταμπλό τώρα
+ingr_odds       defs 1          ; μάσκα: 7 = μία φορά στις 8
 scan_bit        defs 1          ; 1 = σάρωση γραμμών, 2 = κολονών
 nruns           defs 1
 runs            defs 3*MAX_RUNS ; πρώτο κελί, μήκος, βήμα

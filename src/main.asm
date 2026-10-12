@@ -32,6 +32,7 @@ start:
         include "board.asm"
         include "special.asm"
         include "cells.asm"
+        include "ingred.asm"
         include "game.asm"
         include "hud.asm"
 code_end:

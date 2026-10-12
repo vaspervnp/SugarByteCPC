@@ -47,7 +47,13 @@ mcol:
 ; Γεμίζει το ταμπλό χωρίς έτοιμες τριάδες και με τουλάχιστον μία κίνηση.
 fill_board:
         ld hl,board
-.cell   call blocked
+.cell   ld a,(hl)                ; τα υλικά μένουν στη θέση τους
+        cp EMPTY
+        jr z,.free
+        bit 5,a
+        ld c,a
+        jr nz,.ok
+.free   call blocked
         ld c,EMPTY
         jr nz,.ok
         call rand_colour
@@ -272,10 +278,10 @@ try_swap:
         ret z
         ld a,b                  ; βόμβα δίπλα σε candy: κίνηση
         cp BOMB
-        jr z,.bomb
+        jr z,.bomb_b
         ld a,c
         cp BOMB
-        jr z,.bomb
+        jr z,.bomb_c
         ld (hl),b
         ld l,e
         ld (hl),c
@@ -292,7 +298,13 @@ try_swap:
         ld l,d
         ld (hl),c
         ret
-.bomb   scf
+.bomb_b bit 5,c                 ; ... όχι δίπλα σε υλικό
+        ret nz
+        scf
+        ret
+.bomb_c bit 5,b
+        ret nz
+        scf
         ret
 
 ; A = κελί. Carry αν το candy του είναι μέρος τριάδας. Δεν πειράζει DE.
@@ -433,16 +445,27 @@ fall_scan:
         jp p,.try
         ld a,#FF
 .gap    ld hl,gap
-        ld b,a
+        ld d,a                  ; D = το κενό (το rand_colour χαλάει το B)
         ld a,c
         call add_hl_a
-        ld (hl),b
+        ld (hl),d
         ld hl,nextc
         ld a,c
         call add_hl_a
         call rand_colour
         ld (hl),a
-        inc c
+        ld a,d                  ; γεμίζει από την κορυφή; ίσως υλικό
+        cp #FF
+        jr z,.nofill
+        push hl
+        ld hl,segtop
+        ld a,c
+        call add_hl_a
+        ld a,(hl)
+        pop hl
+        or a
+        call z,try_ingredient
+.nofill inc c
         ld a,c
         cp COLS
         jr c,.col

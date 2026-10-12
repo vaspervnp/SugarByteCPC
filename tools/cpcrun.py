@@ -19,7 +19,8 @@ Script lines (';' starts a comment):
   board                         print the 8x8 board
   setboard <row0> ... <row7>    write the board (8 cells a row, see cell_value) and
                                 queue every cell for redraw through the game's dirty list;
-                                every cell becomes a plain one
+                                every cell becomes a plain one, no ingredient
+                                will drop in unless the script pokes ingr_spawn
   setcells <row0> ... <row7>    the cell types (one char a cell, see CELL_CHARS); the
                                 board under blockers is emptied. Use after setboard.
   expectcells <row0> ... <row7> assert the cell types (? matches anything)
@@ -270,12 +271,14 @@ def render_wav(log, end_t, path, rate=22050):
 
 
 # Ένας χαρακτήρας ανά κελί του board[]: 0-5 απλό, A-F ριγέ-οριζ., a-f ριγέ-κάθ.,
-# u-z περιτύλιγμα, * βόμβα, . κενό.
+# u-z περιτύλιγμα, * βόμβα, k κεράσι, n φουντούκι, . κενό.
 def cell_value(ch):
     if ch == '.':
         return 7
     if ch == '*':
         return 6
+    if ch in 'kn':
+        return 0x20 + (ch == 'n')
     for base, form in (('0', 0), ('A', 8), ('a', 16), ('u', 24)):
         if 0 <= ord(ch) - ord(base) < 6:
             return form + ord(ch) - ord(base)
@@ -287,6 +290,8 @@ def cell_char(v):
         return '.'
     if v == 6:
         return '*'
+    if v in (0x20, 0x21):
+        return 'kn'[v & 1]
     return chr(ord('0Aau'[v >> 3]) + (v & 7)) if v < 32 else f"<{v:x}>"
 
 
@@ -364,6 +369,8 @@ def main():
             cpc.poke(syms['DQ_HEAD'], 0)
             cpc.poke(syms['DQ_TAIL'], 0)
             cpc.poke(syms['DQ_N'], 64)
+            cpc.poke(syms['INGR_SPAWN'], 0)         # κανένα υλικό στην τύχη
+            cpc.poke(syms['INGR_BOARD'], sum((cpc.peek(b + i) & 0x27) in (0x20, 0x21) for i in range(64)))
         elif cmd == 'setcells':
             for i, ch in enumerate(''.join(st[1:9])):
                 v = CELL_CHARS[ch]

@@ -1,0 +1,55 @@
+; Τα υλικά (plan.md §6): k κεράσι, n φουντούκι. Η κίνηση: (2,6) <-> (2,7).
+run 20
+
+; το κεράσι πέφτει στη βάση και μαζεύεται: 1.000 πόντοι, ένα λιγότερο στο HUD
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 k1054501 00150123
+poke ingr_left #02
+poke score+1 0
+poke score+2 0
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 3 - 60
+expect matched+48 0
+until state 0 - 600
+expect ingr_left #01
+expect ingr_board 0
+expect score #00
+expect score+1 #10
+expect score+2 #60
+expectboard ???????? ???????? ???????? ???????? ???????? ???????? ???????? ?1??????
+shot ingredient_collected
+
+; η δέσμη του ριγέ δεν πιάνει το υλικό
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 A041n123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 3 - 60
+expect matched+60 0
+expect matched+59 8
+until state 0 - 600
+
+; μπαίνει από την κορυφή όταν περιμένει (εδώ πάντα, ingr_odds = 0)
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00150123
+poke ingr_spawn 1
+poke ingr_odds 0
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 0 - 600
+expect ingr_spawn 0
+expect ingr_board 1
+board

@@ -9,6 +9,8 @@ ROWS            equ 8
 
 EMPTY           equ 7           ; board[]: χρώμα 7 = κενό κελί
 BOMB            equ 6           ; board[]: χρώμα 6 = βόμβα χρώματος
+INGREDIENT      equ #20         ; board[] bit 5: υλικό· bit 0: 0 κεράσι, 1 φουντούκι
+DEMO_INGREDIENTS equ #02        ; BCD: πόσα υλικά ώσπου να έρθουν οι πίστες
 F_STRIPED_H     equ 1<<3        ; board[] bits 3-4: η μορφή
 F_STRIPED_V     equ 2<<3
 F_WRAPPED       equ 3<<3

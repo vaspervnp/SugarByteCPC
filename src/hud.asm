@@ -38,6 +38,7 @@ hud_init:
         ld a,HUD_ICONS+0        ; βέλη: κινήσεις
         ld c,HUD_ICON_XB
         call draw_glyph
+        call hud_goal_init
         ld a,1
         ld (hud_dirty),a
         ; fall through
@@ -49,6 +50,7 @@ hud_update:
         ret z
         xor a
         ld (hud_dirty),a
+        call hud_goal_update
         ld a,HUD_SCORE_Y
         ld (digit_y),a
         ld hl,score

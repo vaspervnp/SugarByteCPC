@@ -20,6 +20,11 @@ game_new:
         ld (ncolours),a
         ld a,START_MOVES
         ld (moves),a
+        ld a,DEMO_INGREDIENTS
+        ld (ingr_left),a
+        ld (ingr_spawn),a
+        ld a,7
+        ld (ingr_odds),a
         ld a,#FF
         ld (sel),a
         ld a,3*COLS+3
@@ -383,6 +388,7 @@ st_clear:
 ; ---------------------------------------------------------------------------
 ; FALL: ένα κελί τη φορά, σε FALL_STEPS καρέ, ώσπου να μη μείνει κενό.
 start_fall:
+        call collect_ingredients
         call fall_scan
         jr z,resolve_fall
         xor a
