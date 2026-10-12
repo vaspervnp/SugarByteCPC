@@ -90,16 +90,12 @@ fill_board:
 ; ---------------------------------------------------------------------------
 ; Ανίχνευση τριάδων (plan.md §8.1)
 
-; Σημαδεύει στο matched[] ό,τι σκάει και προσθέτει τους πόντους.
-; A = πόσες σειρές βρέθηκαν, Z αν καμία.
+; Σημαδεύει στο matched[] ό,τι σκάει, σχεδιάζει τα ειδικά που γεννιούνται και
+; πυροδοτεί όσα ειδικά σκάνε. A = πόσες σειρές βρέθηκαν, Z αν καμία.
 find_matches:
-        ld hl,matched
-        ld b,COLS*ROWS
-        xor a
-.clr    ld (hl),a
-        inc l
-        djnz .clr
-        ld (nmatch),a
+        call clear_matched
+        ld a,1                  ; οι γραμμές: bit 0
+        ld (scan_bit),a
         ld hl,board
 .rows   push hl
         ld c,1
@@ -110,6 +106,8 @@ find_matches:
         ld l,a
         cp COLS*ROWS
         jr c,.rows
+        ld a,2                  ; οι κολόνες: bit 1
+        ld (scan_bit),a
         ld l,0
 .cols   push hl
         ld c,COLS
@@ -121,6 +119,24 @@ find_matches:
         jr c,.cols
         ld a,(nmatch)
         or a
+        ret z
+        call plan_specials
+        call expand_specials
+        ld a,(nmatch)
+        or a
+        ret
+
+; matched[] = 0, και καμία σειρά, κανένα ειδικό στη σειρά για γέννηση.
+clear_matched:
+        ld hl,matched
+        ld b,COLS*ROWS
+        xor a
+.clr    ld (hl),a
+        inc l
+        djnz .clr
+        ld (nmatch),a
+        ld (nruns),a
+        ld (nspawn),a
         ret
 
 ; HL = πρώτο κελί, C = βήμα (1 γραμμή, 8 κολόνα). Σαρώνει 8 κελιά.
@@ -163,9 +179,12 @@ end_run:
         sub c
         ld l,a
         set 6,l                 ; matched = board | #40
-        ld (hl),1
+        ld a,(scan_bit)
+        or (hl)
+        ld (hl),a
         res 6,l
         djnz .mark
+        call record_run         ; L = το πρώτο κελί της σειράς
         ld hl,nmatch
         inc (hl)
         ld a,e                  ; πόντοι (plan.md §8.6)
@@ -241,6 +260,12 @@ try_swap:
         ld b,(hl)
         ld l,d
         ld c,(hl)
+        ld a,b                  ; βόμβα δίπλα σε οτιδήποτε: κίνηση
+        cp BOMB
+        jr z,.bomb
+        ld a,c
+        cp BOMB
+        jr z,.bomb
         ld (hl),b
         ld l,e
         ld (hl),c
@@ -256,6 +281,8 @@ try_swap:
         ld (hl),b
         ld l,d
         ld (hl),c
+        ret
+.bomb   scf
         ret
 
 ; A = κελί. Carry αν το candy του είναι μέρος τριάδας. Δεν πειράζει DE.

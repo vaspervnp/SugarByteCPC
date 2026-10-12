@@ -1,0 +1,90 @@
+; Τα ειδικά candies (plan.md §8.2). Στο board: A-F ριγέ-οριζ., u-z περιτύλιγμα, * βόμβα.
+run 20
+
+; 4 στη σειρά -> ριγέ οριζόντιο εκεί που μπήκε το candy του παίκτη
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00405123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 4 - 60
+expectboard 01234404 23450123 45012345 01234501 23450123 45012345 41454501 ..A.5123
+until state 0 - 600
+shot special_striped
+
+; Γ -> περιτύλιγμα στη γωνία
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00105123
+run 20
+poke cursor 59
+run 1 fire
+run 1
+run 1 left
+run 1
+run 1 fire
+until state 4 - 60
+expectboard 01234404 23450123 45012345 01234501 23450123 45.12345 41.54501 ..u15123
+until state 0 - 600
+shot special_wrapped
+
+; 5 στη σειρά -> βόμβα
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00400123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 4 - 60
+expectboard 01234404 23450123 45012345 01234501 23450123 45012345 41454501 ..*..123
+until state 0 - 600
+
+; ριγέ σε τριάδα: καθαρίζει όλη τη γραμμή του, χωρίς να γεννήσει τίποτα
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 A0415123
+poke score+1 0
+poke score+2 0
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 4 - 60
+expectboard 01234404 23450123 45012345 01234501 23450123 45012345 41454501 ........
+expect nspawn 0
+expect score+1 #03
+expect score+2 #60
+until state 0 - 600
+
+; βόμβα + κίτρινο: σκάνε όλα τα κίτρινα
+poke score+1 0
+poke score+2 0
+setboard *2134404 23450123 45012345 01234501 23450123 45012345 41054501 00150123
+run 20
+poke cursor 0
+run 1 fire
+run 1
+run 1 right
+run 1
+run 1 fire
+until state 4 - 60
+expectboard ..134404 .34501.3 4501.345 01.34501 .34501.3 4501.345 41054501 001501.3
+until state 0 - 600
+shot special_bomb
+
+; περιτύλιγμα σε τριάδα: σκάει το 3x3 γύρω του
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 u0415123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 4 - 60
+expectboard 01234404 23450123 45012345 01234501 23450123 45012345 ..454501 ...15123
+until state 0 - 600

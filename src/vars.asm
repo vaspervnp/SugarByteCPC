@@ -7,7 +7,8 @@
         org #B000
         nocode
 board           defs 64         ; τι κάθεται στο κελί (plan.md §6)
-matched         defs 64         ; 1 = σκάει σε αυτό το RESOLVE
+matched         defs 64         ; σκάει: bit 0 γραμμή, 1 κολόνα, 2 «δεσμευμένο»,
+                                ; 3 το χτύπησε ειδικό, 7 έχει ήδη πυροδοτηθεί
 cell            defs 64         ; τι είναι το κελί· bit 7 = βρώμικο
 dirty_q         defs 64         ; δακτύλιος με τα βρώμικα κελιά
 
@@ -36,6 +37,12 @@ ncolours        defs 1
 seed            defs 2
 gap             defs COLS       ; ανά κολόνα: το χαμηλότερο κενό, #FF = κανένα
 nextc           defs COLS       ; ανά κολόνα: το candy που μπαίνει από πάνω
+scan_bit        defs 1          ; 1 = σάρωση γραμμών, 2 = κολονών
+nruns           defs 1
+runs            defs 3*MAX_RUNS ; πρώτο κελί, μήκος, βήμα
+nspawn          defs 1
+spawns          defs 2*MAX_SPAWN ; κελί, τιμή board[] του ειδικού που γεννιέται
+sp_changed      defs 1
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
 fall_y          defs 1

@@ -12,7 +12,7 @@ sprites_end:
         assert sprites_end <= CELL_SCR
 
         include "vars.asm"
-        assert (keymap&#FF)+10 < 256 && (gap&#FF)+2*COLS < 256
+        assert (keymap&#FF)+10 < 256 && (gap&#FF)+2*COLS < 256 && vars_end-vars_start < 256
 
         org CODE_ORG
 start:
@@ -30,6 +30,7 @@ start:
         include "hw.asm"
         include "gfx.asm"
         include "board.asm"
+        include "special.asm"
         include "game.asm"
         include "hud.asm"
 code_end:

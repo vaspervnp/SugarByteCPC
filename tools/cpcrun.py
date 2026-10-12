@@ -16,8 +16,8 @@ Script lines (';' starts a comment):
   until <addr> <value> [keys] [max]   run frames (holding keys, or - for none) until the
                                 byte equals value; fails after max frames (default 3000)
   print <addr> [count]          print bytes (hex)
-  board                         print the 8x8 board (colour digits, . = empty)
-  setboard <row0> ... <row7>    write the board (8 hex digits a row, . = empty) and
+  board                         print the 8x8 board
+  setboard <row0> ... <row7>    write the board (8 cells a row, see cell_value) and
                                 queue every cell for redraw through the game's dirty list
   expectboard <row0> ... <row7> assert the board (? matches anything)
   psg <reg> <value>             assert a PSG (AY) register's current value
@@ -264,6 +264,27 @@ def render_wav(log, end_t, path, rate=22050):
         w.writeframes(out.tobytes())
 
 
+# Ένας χαρακτήρας ανά κελί του board[]: 0-5 απλό, A-F ριγέ-οριζ., a-f ριγέ-κάθ.,
+# u-z περιτύλιγμα, * βόμβα, . κενό.
+def cell_value(ch):
+    if ch == '.':
+        return 7
+    if ch == '*':
+        return 6
+    for base, form in (('0', 0), ('A', 8), ('a', 16), ('u', 24)):
+        if 0 <= ord(ch) - ord(base) < 6:
+            return form + ord(ch) - ord(base)
+    raise ValueError(f"unknown board cell '{ch}'")
+
+
+def cell_char(v):
+    if v == 7:
+        return '.'
+    if v == 6:
+        return '*'
+    return chr(ord('0Aau'[v >> 3]) + (v & 7)) if v < 32 else f"<{v:x}>"
+
+
 def parse_value(v, cpc, syms):
     """#hex, decimal, or a symbol (its address)."""
     if v.startswith('#'):
@@ -326,7 +347,7 @@ def main():
         elif cmd == 'setboard':
             b = syms['BOARD']
             for i, ch in enumerate(''.join(st[1:9])):
-                cpc.poke(b + i, 7 if ch == '.' else int(ch, 16))
+                cpc.poke(b + i, cell_value(ch))
                 cpc.poke(syms['CELL'] + i, cpc.peek(syms['CELL'] + i) | 0x80)
                 cpc.poke(syms['DIRTY_Q'] + i, i)
             cpc.poke(syms['DQ_HEAD'], 0)
@@ -335,7 +356,7 @@ def main():
         elif cmd == 'expectboard':
             b = syms['BOARD']
             want = ''.join(st[1:9])
-            got = ''.join('.' if (v := cpc.peek(b + i)) == 7 else f"{v:x}" for i in range(64))
+            got = ''.join(cell_char(cpc.peek(b + i)) for i in range(64))
             ok = all(w in ('?', g) for w, g in zip(want, got))
             failures += not ok
             print(f"{'ok  ' if ok else 'FAIL'} board" + ('' if ok else
@@ -344,7 +365,7 @@ def main():
         elif cmd == 'board':
             b = syms['BOARD']
             for y in range(8):
-                print('  ' + ' '.join('.' if (v := cpc.peek(b + y * 8 + x)) == 7 else f"{v:x}" for x in range(8)))
+                print('  ' + ' '.join(cell_char(cpc.peek(b + y * 8 + x)) for x in range(8)))
         elif cmd in ('psg', 'psgon'):
             reg = int(st[1])
             got = cpc.psg[reg]

@@ -8,6 +8,12 @@ COLS            equ 8
 ROWS            equ 8
 
 EMPTY           equ 7           ; board[]: χρώμα 7 = κενό κελί
+BOMB            equ 6           ; board[]: χρώμα 6 = βόμβα χρώματος
+F_STRIPED_H     equ 1<<3        ; board[] bits 3-4: η μορφή
+F_STRIPED_V     equ 2<<3
+F_WRAPPED       equ 3<<3
+MAX_RUNS        equ 24
+MAX_SPAWN       equ 16
 FORM_SHIFT      equ 3           ; board[] bits 3-4: η μορφή του candy
 
 ; --- το HUD ------------------------------------------------------------------

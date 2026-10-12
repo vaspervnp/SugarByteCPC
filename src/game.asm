@@ -193,9 +193,11 @@ st_swap:
         jr z,.back
         ld a,1                  ; RESOLVE
         ld (chain),a
+        call bomb_swap
+        jr c,.valid
         call find_matches
         jr z,.invalid
-        ld a,(moves)
+.valid  ld a,(moves)
         sub 1
         daa
         ld (moves),a
@@ -344,6 +346,24 @@ st_clear:
         ld a,c
         cp COLS*ROWS
         jr c,.cell2
+        ld a,(nspawn)           ; τα ειδικά που γεννήθηκαν
+        or a
+        jr z,start_fall
+        ld b,a
+        ld hl,spawns
+.spawn  ld a,(hl)
+        inc hl
+        ld e,(hl)
+        inc hl
+        push hl
+        push bc
+        ld l,a
+        ld h,board>>8
+        ld (hl),e
+        call draw_candy_cell
+        pop bc
+        pop hl
+        djnz .spawn
         ; fall through
 
 ; ---------------------------------------------------------------------------
