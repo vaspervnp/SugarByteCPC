@@ -44,12 +44,12 @@ fi
 echo "== αντιγράφω =="
 rm -rf "$DST/aseprite" "$DST/preview" "$DST/sheets"
 mkdir -p "$DST/aseprite" "$DST/preview" "$DST/sheets"
-cp "$SRC"/sprites.bin "$SRC"/sprites.asm "$SRC"/sprites_map.txt \
-   "$SRC"/palette.gpl "$SRC"/manifest.json "$DST/"
+cp "$SRC"/sprites.bin "$SRC"/sprites.asm \
+   "$SRC"/menu.bin "$SRC"/menu.asm \
+   "$SRC"/sprites_map.txt "$SRC"/palette.gpl "$SRC"/manifest.json "$DST/"
 cp "$SRC"/*.aseprite "$DST/aseprite/"
 cp "$SRC"/*_sheet.png "$SRC"/*_sheet.json "$DST/sheets/"
-cp "$SRC"/preview_*.png "$SRC"/mockup_screen.png "$SRC"/mockup_screen_2x1.png \
-   "$DST/preview/"
+cp "$SRC"/preview_*.png "$SRC"/mockup_*.png "$DST/preview/"
 
 REV="$(git -C "$CPCART" rev-parse --short HEAD)"
 DIRTY=""
