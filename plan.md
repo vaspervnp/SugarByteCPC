@@ -653,11 +653,58 @@ assets/      τα γραφικά (παράγονται — μην τα πειρ�
 build/       ό,τι βγάζει ο assembler
 ```
 
-- **Assembler:** `rasm` ή `sjasmplus` — και τα δύο κάνουν `incbin` και
-  `rept`/`endr`.
-- **Δισκέτα:** `iDSK` ή `cpcdiskxml` για το `.dsk`.
-- **Εξομοιωτής:** Caprice32, WinAPE ή Arnold. Το WinAPE έχει τον καλύτερο
-  debugger για Z80 και αξίζει ακόμα κι αν αναπτύσσεις σε Linux μέσω Wine.
+Η ανάπτυξη είναι μοιρασμένη σε δύο μηχανήματα που βλέπουν τον ίδιο δίσκο: ο
+**κώδικας και το χτίσιμο τρέχουν στο WSL (Ubuntu)**, τα **εργαλεία γραφικών
+τρέχουν στα Windows** και οδηγούνται μέσω MCP.
+
+### Στο WSL
+
+| εργαλείο | πού | τι κάνει |
+|---|---|---|
+| **rasm** 3.2.5 | `/usr/local/bin/rasm` | assembler Z80 — `incbin`, `rept`/`endr`, και γράφει **κατευθείαν μέσα σε `.dsk`** |
+| **iDSK** 0.20 | `/usr/local/bin/iDSK` | δισκέτες: κατάλογος, εισαγωγή, εξαγωγή, hex dump, disassembly |
+| **python3** | | η γεννήτρια των γραφικών, στο `CPCArt/sugarbyte` |
+
+### Στα Windows, μέσω MCP
+
+| εργαλείο | τι κάνει |
+|---|---|
+| **Aseprite** 1.3.18 | οι πηγές `.aseprite` των sprites — pixel ratio 2:1, tags ανά ομάδα, όνομα καρέ στο user data του cel |
+| **Blender** | ό,τι είναι προ-αποδοσμένο: οθόνη τίτλου, εικονογράφηση intro. Render, μετά κβαντισμός στους 16 pens της παλέτας |
+
+Τα εργαλεία των Windows φτάνουν το repo από το
+`\\wsl.localhost\Ubuntu\home\<χρήστης>\repos\SugarByteCPC\…` — και για
+διάβασμα και για γράψιμο. Τα `.aseprite` του `assets/aseprite/` χτίστηκαν έτσι,
+με ένα script Lua που τρέχει το Aseprite σε batch.
+
+### Χτίσιμο
+
+Το `rasm` γράφει **μόνο του** τη δισκέτα, με κεφαλίδα AMSDOS· δεν χρειάζεται
+δεύτερο βήμα:
+
+```z80
+        org   #0100
+        run   #0100
+start
+        ; …
+        save  "SUGAR.BIN", start, $-start, DSK, "build/sugar.dsk"
+```
+
+```bash
+rasm src/main.asm                               # γράφει το build/sugar.dsk
+rasm src/main.asm -ob build/sugar.bin           # ή σκέτο binary
+iDSK build/sugar.dsk -l                         # τι έχει μέσα η δισκέτα
+iDSK build/sugar.dsk -i build/sugar.bin -t 1 -c 0100 -e 0100 -f
+```
+
+Στο `iDSK` το `-t 1` σημαίνει «binary», το `-c` είναι η διεύθυνση φόρτωσης και
+το `-e` η διεύθυνση εκτέλεσης — δεκαεξαδικά, χωρίς πρόθεμα. Το `-f` γράφει από
+πάνω αν το αρχείο υπάρχει ήδη.
+
+### Εξομοιωτής
+
+Caprice32 ή Arnold στο WSL, WinAPE στα Windows. Το **WinAPE έχει τον καλύτερο
+debugger για Z80** και είναι εκεί που θα βρεις γιατί τα candies βγαίνουν μισά.
 
 ### Τα γραφικά
 
