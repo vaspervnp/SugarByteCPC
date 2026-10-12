@@ -11,6 +11,12 @@ shot level1
 ; στόχος πόντων: 3.000 -> νίκη μετά την επόμενη κίνηση, 1 αστέρι
 setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
 poke lv_goal 0
+poke lv_star1 0                ; αστέρια 3.000 / 5.000 / 8.000, ανεξάρτητα από τη ρύθμιση
+poke lv_star1+1 #30
+poke lv_star2 0
+poke lv_star3 0
+poke lv_star2+1 #50
+poke lv_star3+1 #80
 poke score+1 #30
 poke moves 1               ; καμία κίνηση δεν περισσεύει: χωρίς Sugar Crush
 run 20
@@ -37,6 +43,12 @@ expectboard .??????. ???????? ???????? ???????? ???????? ???????? ???????? .????
 setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
 setcells ........ ........ ........ ........ ........ ........ ........ jjj.....
 poke lv_goal 1
+poke lv_star1 0                ; αστέρια 3.000 / 5.000 / 8.000, ανεξάρτητα από τη ρύθμιση
+poke lv_star1+1 #30
+poke lv_star2 0
+poke lv_star3 0
+poke lv_star2+1 #50
+poke lv_star3+1 #80
 poke score+1 #75
 poke moves 1
 run 20
@@ -55,6 +67,12 @@ run 1
 expect cur_level 2
 setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
 poke lv_goal 0
+poke lv_star1 0                ; αστέρια 3.000 / 5.000 / 8.000, ανεξάρτητα από τη ρύθμιση
+poke lv_star1+1 #30
+poke lv_star2 0
+poke lv_star3 0
+poke lv_star2+1 #50
+poke lv_star3+1 #80
 poke moves 1
 run 20
 poke cursor 50
@@ -78,7 +96,8 @@ run 1 fire
 run 1
 expect lv_goal 3
 expect ingr_left #02
-expect ncolours 6
+expect ncolours 5
+expect moves #40
 shot level17
 
 ; τρύπες στην κορυφή της κολόνας: τα καινούργια μπαίνουν κάτω από αυτές

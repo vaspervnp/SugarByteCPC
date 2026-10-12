@@ -20,7 +20,7 @@
 | [`src/`](src/) | Ο κώδικας Z80 (rasm). Ξεκινάει από το [`main.asm`](src/main.asm). |
 | [`tools/`](tools/) | `cpcrun.py`: headless Z80 με σενάρια και screenshots. `boot_test.py`: εκκίνηση από δισκέτα σε πλήρη εξομοιωτή 6128. |
 | [`tests/`](tests/) | Τα σενάρια του `make test`. |
-| [`levels/`](levels/) | Οι πίστες σε κείμενο· το `tools/levels.py` τις κάνει ~16 bytes η καθεμία στο build. |
+| [`levels/`](levels/) | Οι πίστες σε κείμενο· το `tools/levels.py` τις κάνει ~16 bytes η καθεμία στο build· το `tools/levelsim.py` τις παίζει με ρομπότ, το `tools/leveltune.py` ρυθμίζει κινήσεις και αστέρια. |
 | [`voice/`](voice/) | Οι φράσεις (WAV, από το `tools/voice_tts.sh`)· το `tools/voice.py` τις κάνει δείγματα AY στο build. |
 
 ## Η κατάσταση

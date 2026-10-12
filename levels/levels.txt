@@ -12,14 +12,17 @@
 #
 # Καμπύλη (plan.md §11): πρώτα σκέτοι πόντοι με 4 χρώματα, μετά ζελέ, μετά
 # γλάσο και 5 χρώματα, μετά υλικά, σοκολάτα, γλυκόριζα και 6 χρώματα· από την
-# 21 τρύπες και εμπόδια στη μέση, και στο τέλος όλα μαζί.
+# 21 τρύπες και εμπόδια στη μέση, και στο τέλος όλα μαζί. 6 χρώματα μόνο στις
+# πίστες πόντων: σε 8x8 κάνουν τα ζελέ και τα υλικά σχεδόν αδύνατα.
+#
+# Κινήσεις και αστέρια: tools/leveltune.py levels/levels.txt (με το levelsim.py).
 
 
 level 1
 goal score
 moves 20
 colours 4
-stars 3000 5000 8000
+stars 25000 32000 43000
 cells
 ........
 ........
@@ -34,7 +37,7 @@ level 2
 goal score
 moves 18
 colours 4
-stars 4000 6500 9000
+stars 24500 31000 38500
 cells
 o......o
 ........
@@ -49,7 +52,7 @@ level 3
 goal score
 moves 18
 colours 4
-stars 5000 8000 11000
+stars 16000 21500 26000
 cells
 oo....oo
 o......o
@@ -64,7 +67,7 @@ level 4
 goal score
 moves 16
 colours 4
-stars 6000 9000 12000
+stars 12500 18000 25000
 cells
 ........
 ........
@@ -77,9 +80,9 @@ cells
 
 level 5
 goal jelly
-moves 20
+moves 14
 colours 5
-stars 3000 6000 9000
+stars 7000 9000 13000
 cells
 ........
 ........
@@ -92,9 +95,9 @@ cells
 
 level 6
 goal jelly
-moves 22
+moves 40
 colours 5
-stars 4000 7000 10000
+stars 9500 14500 21500
 cells
 ........
 ........
@@ -107,9 +110,9 @@ jjjjjjjj
 
 level 7
 goal jelly
-moves 24
+moves 20
 colours 5
-stars 5000 8000 12000
+stars 10000 13500 18500
 cells
 ........
 .jjjjjj.
@@ -122,24 +125,24 @@ cells
 
 level 8
 goal jelly
-moves 25
+moves 40
 colours 5
-stars 6000 9000 13000
+stars 14000 19500 27500
 cells
-J......J
-.J....J.
+j......j
+.j....j.
 ..J..J..
 ...JJ...
 ...JJ...
 ..J..J..
-.J....J.
-J......J
+.j....j.
+j......j
 
 level 9
 goal jelly
-moves 26
+moves 22
 colours 5
-stars 6000 10000 14000
+stars 10500 13000 16500
 cells
 oo....oo
 o.jjjj.o
@@ -152,9 +155,9 @@ oo....oo
 
 level 10
 goal jelly
-moves 30
+moves 35
 colours 5
-stars 8000 12000 16000
+stars 21500 27000 33000
 cells
 jjjjjjjj
 jjjjjjjj
@@ -169,7 +172,7 @@ level 11
 goal score
 moves 20
 colours 5
-stars 6000 9000 13000
+stars 6500 10000 12000
 cells
 ........
 ........
@@ -182,9 +185,9 @@ cells
 
 level 12
 goal jelly
-moves 24
+moves 19
 colours 5
-stars 6000 9000 13000
+stars 6000 8500 12000
 cells
 ........
 ........
@@ -197,9 +200,9 @@ cells
 
 level 13
 goal jelly
-moves 26
+moves 21
 colours 5
-stars 7000 10000 14000
+stars 7000 10000 14500
 cells
 ........
 ........
@@ -214,7 +217,7 @@ level 14
 goal score
 moves 22
 colours 5
-stars 9000 13000 18000
+stars 6500 9500 12000
 cells
 ........
 ........
@@ -227,10 +230,10 @@ cells
 
 level 15
 goal ingredients
-moves 25
+moves 20
 colours 5
 ingredients 1
-stars 4000 7000 10000
+stars 6500 9000 13500
 cells
 ........
 ........
@@ -243,10 +246,10 @@ cells
 
 level 16
 goal ingredients
-moves 25
-colours 6
+moves 40
+colours 5
 ingredients 2
-stars 5000 8000 12000
+stars 11000 17500 25000
 cells
 o......o
 ........
@@ -259,10 +262,10 @@ o......o
 
 level 17
 goal jelly+ingredients
-moves 30
-colours 6
+moves 40
+colours 5
 ingredients 2
-stars 6000 9000 13000
+stars 18000 23000 29000
 cells
 ........
 ........
@@ -277,7 +280,7 @@ level 18
 goal score
 moves 25
 colours 6
-stars 8000 12000 16000
+stars 4000 7000 8000
 cells
 ........
 ........
@@ -290,9 +293,9 @@ cc....cc
 
 level 19
 goal jelly
-moves 28
-colours 6
-stars 8000 12000 16000
+moves 11
+colours 5
+stars 6000 8000 12000
 cells
 ........
 ........
@@ -305,15 +308,15 @@ lll..lll
 
 level 20
 goal jelly+ingredients
-moves 32
-colours 6
+moves 40
+colours 5
 ingredients 2
-stars 10000 15000 20000
+stars 17000 24000 31000
 cells
 ........
 .jjjjjj.
-.jJJJJj.
-.jJJJJj.
+.jjjjjj.
+.jjjjjj.
 .jjjjjj.
 ........
 l..cc..l
@@ -325,7 +328,7 @@ level 21
 goal score
 moves 20
 colours 5
-stars 6000 9000 12000
+stars 4500 7500 9000
 cells
 ........
 ........
@@ -338,9 +341,9 @@ cells
 
 level 22
 goal jelly
-moves 22
+moves 16
 colours 5
-stars 5000 8000 11000
+stars 7000 9000 13000
 cells
 ........
 ........
@@ -355,7 +358,7 @@ level 23
 goal score
 moves 20
 colours 5
-stars 7000 10000 14000
+stars 5000 7500 9000
 cells
 ........
 .oo..oo.
@@ -368,9 +371,9 @@ cells
 
 level 24
 goal jelly
-moves 24
+moves 12
 colours 5
-stars 6000 9000 13000
+stars 5000 6500 9000
 cells
 ........
 ...oo...
@@ -383,10 +386,10 @@ o.jjjj.o
 
 level 25
 goal ingredients
-moves 24
+moves 38
 colours 5
 ingredients 2
-stars 5000 8000 12000
+stars 11000 16500 23000
 cells
 ........
 ........
@@ -401,7 +404,7 @@ level 26
 goal score
 moves 22
 colours 5
-stars 8000 12000 16000
+stars 5000 8000 9500
 cells
 ........
 ........
@@ -414,9 +417,9 @@ cells
 
 level 27
 goal jelly
-moves 24
+moves 40
 colours 5
-stars 7000 10000 14000
+stars 8000 11500 14500
 cells
 jj....jj
 jj.oo.jj
@@ -429,10 +432,10 @@ jj....jj
 
 level 28
 goal ingredients
-moves 26
+moves 37
 colours 5
 ingredients 2
-stars 6000 9000 13000
+stars 11500 16500 24000
 cells
 ........
 ........
@@ -445,9 +448,9 @@ cells
 
 level 29
 goal jelly
-moves 26
+moves 15
 colours 5
-stars 8000 12000 16000
+stars 5500 7500 11000
 cells
 ........
 .o.oo.o.
@@ -460,10 +463,10 @@ jjjjjjjj
 
 level 30
 goal jelly+ingredients
-moves 28
+moves 39
 colours 5
 ingredients 2
-stars 9000 13000 18000
+stars 19000 23000 30500
 cells
 ........
 ........
@@ -480,7 +483,7 @@ level 31
 goal score
 moves 22
 colours 6
-stars 7000 10000 14000
+stars 2500 5000 6000
 cells
 ........
 ........
@@ -493,9 +496,9 @@ cells
 
 level 32
 goal jelly
-moves 26
+moves 10
 colours 5
-stars 8000 12000 16000
+stars 5000 7500 11500
 cells
 ........
 ...cc...
@@ -508,10 +511,10 @@ cells
 
 level 33
 goal ingredients
-moves 26
-colours 6
+moves 34
+colours 5
 ingredients 2
-stars 6000 9000 13000
+stars 12500 17500 25500
 cells
 ........
 ........
@@ -524,24 +527,24 @@ cells
 
 level 34
 goal jelly
-moves 28
+moves 40
 colours 5
-stars 9000 13000 18000
+stars 11500 15000 19500
 cells
-JJJ..JJJ
-J.o..o.J
-J......J
+jjj..jjj
+j.o..o.j
+j......j
 ...22...
 ...22...
-J......J
-J.o..o.J
-JJJ..JJJ
+j......j
+j.o..o.j
+jjj..jjj
 
 level 35
 goal score
 moves 24
-colours 6
-stars 9000 13000 18000
+colours 5
+stars 6000 8000 9500
 cells
 ........
 ........
@@ -554,9 +557,9 @@ o......o
 
 level 36
 goal jelly
-moves 26
+moves 18
 colours 5
-stars 8000 12000 16000
+stars 5000 7000 10000
 cells
 ........
 ..2222..
@@ -569,10 +572,10 @@ cells
 
 level 37
 goal ingredients
-moves 28
-colours 6
-ingredients 3
-stars 8000 12000 16000
+moves 38
+colours 5
+ingredients 2
+stars 12000 16500 22000
 cells
 ........
 ........
@@ -585,9 +588,9 @@ oo.oo.oo
 
 level 38
 goal jelly
-moves 28
-colours 6
-stars 9000 13000 18000
+moves 40
+colours 5
+stars 16500 21000 29500
 cells
 jjjjjjjj
 jo.jj.oj
@@ -600,10 +603,10 @@ jjjjjjjj
 
 level 39
 goal jelly+ingredients
-moves 30
+moves 32
 colours 5
 ingredients 2
-stars 10000 15000 20000
+stars 16000 20500 26000
 cells
 ........
 ........
@@ -617,8 +620,8 @@ cells
 level 40
 goal score
 moves 22
-colours 6
-stars 10000 15000 20000
+colours 5
+stars 7000 9500 11000
 cells
 oo....oo
 o......o
@@ -633,9 +636,9 @@ oo....oo
 
 level 41
 goal jelly
-moves 26
-colours 6
-stars 9000 13000 18000
+moves 40
+colours 5
+stars 12000 16500 20500
 cells
 .J....J.
 JJ....JJ
@@ -648,10 +651,10 @@ JJ....JJ
 
 level 42
 goal ingredients
-moves 26
-colours 6
+moves 40
+colours 5
 ingredients 2
-stars 7000 10000 14000
+stars 7000 9500 13500
 cells
 ........
 .o....o.
@@ -664,9 +667,9 @@ cells
 
 level 43
 goal jelly
-moves 28
-colours 6
-stars 10000 15000 20000
+moves 18
+colours 5
+stars 12000 15500 19500
 cells
 ...jj...
 ..jjjj..
@@ -681,7 +684,7 @@ level 44
 goal score
 moves 24
 colours 6
-stars 11000 16000 22000
+stars 5500 8500 9500
 cells
 ........
 .l.ll.l.
@@ -694,10 +697,10 @@ cells
 
 level 45
 goal jelly+ingredients
-moves 30
-colours 6
+moves 33
+colours 5
 ingredients 2
-stars 10000 15000 20000
+stars 15500 19000 23000
 cells
 ........
 ........
@@ -710,25 +713,25 @@ j......j
 
 level 46
 goal jelly
-moves 30
-colours 6
-stars 11000 16000 22000
+moves 36
+colours 5
+stars 12000 15000 19500
 cells
-JJJJJJJJ
-J......J
-J.1111.J
-J.1oo1.J
-J.1oo1.J
-J.1111.J
-J......J
-JJJJJJJJ
+jjjjjjjj
+j......j
+j.1111.j
+j.1oo1.j
+j.1oo1.j
+j.1111.j
+j......j
+jjjjjjjj
 
 level 47
 goal ingredients
-moves 28
-colours 6
-ingredients 3
-stars 8000 12000 16000
+moves 34
+colours 5
+ingredients 2
+stars 10500 15500 24000
 cells
 ........
 ........
@@ -741,9 +744,9 @@ cells
 
 level 48
 goal jelly
-moves 30
-colours 6
-stars 11000 16000 22000
+moves 40
+colours 5
+stars 9500 11500 15000
 cells
 o.jjjj.o
 .o.jj.o.
@@ -758,7 +761,7 @@ level 49
 goal score
 moves 26
 colours 6
-stars 12000 18000 24000
+stars 5000 7500 8500
 cells
 ........
 ........
@@ -771,10 +774,10 @@ cells
 
 level 50
 goal jelly+ingredients
-moves 34
-colours 6
+moves 40
+colours 5
 ingredients 3
-stars 14000 20000 27000
+stars 22000 28500 35500
 cells
 ........
 .o....o.
@@ -789,9 +792,9 @@ o......o
 
 level 51
 goal jelly
-moves 28
-colours 6
-stars 11000 16000 22000
+moves 40
+colours 5
+stars 16000 21000 28000
 cells
 jjjjjjjj
 jjjjjjjj
@@ -804,10 +807,10 @@ jjjjjjjj
 
 level 52
 goal ingredients
-moves 28
-colours 6
-ingredients 3
-stars 9000 13000 18000
+moves 39
+colours 5
+ingredients 2
+stars 12500 18000 25000
 cells
 ........
 .cc..cc.
@@ -820,9 +823,9 @@ o.o..o.o
 
 level 53
 goal jelly
-moves 30
-colours 6
-stars 12000 18000 24000
+moves 33
+colours 5
+stars 24000 29000 34000
 cells
 J.J..J.J
 .J.JJ.J.
@@ -836,8 +839,8 @@ J.J..J.J
 level 54
 goal score
 moves 26
-colours 6
-stars 13000 19000 26000
+colours 5
+stars 8000 10500 11500
 cells
 oo....oo
 o.3333.o
@@ -850,10 +853,10 @@ oo....oo
 
 level 55
 goal jelly+ingredients
-moves 32
-colours 6
+moves 29
+colours 5
 ingredients 2
-stars 13000 19000 26000
+stars 12000 16000 22500
 cells
 ...oo...
 ........
@@ -866,25 +869,25 @@ oo....oo
 
 level 56
 goal jelly
-moves 32
-colours 6
-stars 13000 19000 26000
+moves 40
+colours 5
+stars 8000 10000 12500
 cells
-JJJ..JJJ
-JJ.oo.JJ
-J.3333.J
+jjj..jjj
+jj.oo.jj
+j.3333.j
 ..3oo3..
 ..3oo3..
-J.3333.J
-JJ.oo.JJ
-JJJ..JJJ
+j.3333.j
+jj.oo.jj
+jjj..jjj
 
 level 57
 goal ingredients
-moves 30
-colours 6
-ingredients 4
-stars 11000 16000 22000
+moves 34
+colours 5
+ingredients 2
+stars 7500 11000 16000
 cells
 ........
 ........
@@ -897,9 +900,9 @@ oo.oo.oo
 
 level 58
 goal jelly
-moves 32
-colours 6
-stars 14000 20000 27000
+moves 40
+colours 5
+stars 18500 23500 30000
 cells
 jjjjjjjj
 jo2jj2oj
@@ -913,30 +916,30 @@ jjjjjjjj
 level 59
 goal score
 moves 28
-colours 6
-stars 15000 22000 30000
+colours 5
+stars 3000 4500 5000
 cells
+........
 ...oo...
-..o..o..
-.o.33.o.
-o.3cc3.o
-o.3cc3.o
-.o.33.o.
-..o..o..
+..o33o..
+.o3cc3o.
+.o3cc3o.
+..o33o..
 ...oo...
+........
 
 level 60
 goal jelly+ingredients
-moves 36
-colours 6
-ingredients 3
-stars 16000 24000 32000
+moves 40
+colours 5
+ingredients 2
+stars 12500 19000 24500
 cells
 o......o
-.JJJJJJ.
-.J3333J.
-.J3cc3J.
-.J3cc3J.
-.J3333J.
-.JJJJJJ.
+.jjjjjj.
+.j2222j.
+.j2cc2j.
+.j2cc2j.
+.j2222j.
+.jjjjjj.
 o..oo..o
