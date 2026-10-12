@@ -1,15 +1,19 @@
 ; codes.asm — η πρόοδος με κωδικούς πίστας
 ;
-; Κάθε πίστα έχει έναν κωδικό 4 ψηφίων (level_codes, από το tools/levels.py).
+; Κάθε πίστα έχει έναν κωδικό 4 ψηφίων: CODE_FIRST + πίστα * CODE_STEP, σε BCD
+; mod 10.000 (tools/levels.py).
 ; Το HUD δείχνει πάντα τον κωδικό της τρέχουσας πίστας, και στη νίκη της
 ; επόμενης. Στο μενού, LEVELS: «CODE 0000» — ←→ ψηφίο, ↑↓ αλλάζει, SPACE
 ; δέχεται, ESC ακυρώνει.
 
 ; A = πίστα: το λουκέτο και ο κωδικός της στο HUD.
 hud_show_code:
-        add a,a
-        ld hl,level_codes
-        call add_hl_a
+        call level_code
+        ld hl,menu_buf
+        ld (hl),d
+        inc hl
+        ld (hl),e
+        dec hl
         push hl
         ld a,ICON_LOCK
         ld bc,HUD_MOVES_ICON_Y*256+HUD_CODE_ICON_X
@@ -20,6 +24,23 @@ hud_show_code:
         ld b,2
         ld c,HUD_CODE_X
         jp draw_bcd
+
+; A = πίστα (από 0) -> DE = ο κωδικός της σε BCD. Πειράζει B.
+level_code:
+        ld de,CODE_FIRST
+        or a
+        ret z
+        ld b,a
+.add    ld a,e
+        add a,CODE_STEP&#FF
+        daa
+        ld e,a
+        ld a,d
+        adc a,CODE_STEP>>8
+        daa
+        ld d,a
+        djnz .add
+        ret
 
 ; Από το μενού: η εισαγωγή αρχίζει από 0000, πάνω στο πιάτο LEVELS.
 start_code:
@@ -100,23 +121,25 @@ st_code:
         inc hl
         or (hl)
         ld e,a
-        ld hl,level_codes
-        ld b,0
-.find   ld a,(hl)
-        inc hl
+        ld c,0
+.find   push de
+        ld a,c
+        call level_code
+        pop hl
+        ld a,h
         cp d
-        ld a,(hl)
-        inc hl
         jr nz,.nfound
+        ld a,l
         cp e
         jr z,.found
-.nfound inc b
-        ld a,b
+.nfound ex de,hl
+        inc c
+        ld a,c
         cp NLEVELS
         jr c,.find
         ld hl,sfx_bad           ; κανένας τέτοιος κωδικός
         jp play_sfx
-.found  ld a,b
+.found  ld a,c
         ld (cur_level),a
         ld a,S_MENU
         ld (state),a

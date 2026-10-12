@@ -1,29 +1,33 @@
 #!/usr/bin/env python3
 """levels/levels.txt -> build/levels.asm (plan.md §11).
 
-Μία πίστα: κεφαλίδα 10 bytes και τα 64 κελιά σε RLE.
+Οι πίστες, η μία μετά την άλλη (το load_level τις διαβάζει με τη σειρά):
 
-    0     στόχος: 0 πόντοι, 1 ζελέ, 2 υλικά, 3 ζελέ + υλικά
-    1-2   πόντοι για 1 αστέρι (και στόχος των "score"), BCD εκατοντάδες, MSB πρώτο
-    3     κινήσεις, BCD
-    4     χρώματα (4-6)
-    5     υλικά, BCD
-    6-7   πόντοι για 2 αστέρια
-    8-9   πόντοι για 3 αστέρια
-    ...   ζεύγη (πλήθος, cell[]) ώσπου να καλυφθούν 64 κελιά
+    0     σημαίες: bits 0-1 στόχος (0 πόντοι, 1 ζελέ, 2 υλικά, 3 ζελέ + υλικά),
+          bits 2-3 χρώματα - 4, bit 4 καθρέφτης
+    1     κινήσεις, BCD
+    (2)   υλικά, BCD — μόνο αν ο στόχος έχει υλικά
+    +3    πόντοι για 1, 2, 3 αστέρια, σε μονάδες των 500 (1-255)
+    ...   τα κελιά σε τρεξίματα, ένα byte το καθένα: είδος (CELL_KINDS) στο
+          πάνω nibble, μήκος - 1 στο κάτω, ώσπου να καλυφθούν 64 κελιά — ή 32
+          με τον καθρέφτη: οι 4 αριστερές κολόνες, και οι δεξιές είναι το
+          είδωλό τους
 
-Και οι κωδικοί των πιστών (level_codes, 2 bytes BCD η καθεμία, MSB πρώτο):
-4 ψηφία από hash του αριθμού της πίστας, όλοι διαφορετικοί, κανένας 0000.
+Οι κωδικοί των πιστών δεν είναι πίνακας: ο πρώτος είναι CODE_FIRST και κάθε
+επόμενος + CODE_STEP, σε BCD mod 10.000. Το βήμα είναι πρώτο ως προς το 10,
+άρα κανένας δεν επαναλαμβάνεται· κανένας δεν είναι 0000.
 
   levels.py levels/levels.txt build/levels.asm
 """
-import hashlib
 import sys
 
 GOALS = {'score': 0, 'jelly': 1, 'ingredients': 2, 'jelly+ingredients': 3}
 CELLS = {'.': 0x00, 'j': 0x20, 'J': 0x40, '1': 0x0A, '2': 0x12, '3': 0x1A,
          'c': 0x03, 'l': 0x04, 'o': 0x01}
+KINDS = list(CELLS)                 # η σειρά του cell_kinds
 BLOCKS = 'o123cl'
+CODE_FIRST, CODE_STEP = 4721, 3587
+STAR_UNIT = 500
 
 
 def bcd(n, digits):
@@ -85,43 +89,59 @@ def check(lv):
     wants_ingr = lv['goal'] in (2, 3)
     if wants_ingr != (lv['ingredients'] > 0):
         sys.exit(f"{name}: τα υλικά και ο στόχος δεν συμφωνούν")
-    if wants_ingr and all(ch in BLOCKS for ch in lv['cells'][7]):
+    g = lv['cells']
+    exits = [(y, x) for y in range(8) for x in range(8)
+             if g[y][x] != 'o' and (y == 7 or g[y + 1][x] == 'o')]
+    if wants_ingr and not exits:
         sys.exit(f"{name}: τα υλικά δεν έχουν από πού να βγουν")
-    for x in range(8):
-        col = ''.join(r[x] for r in lv['cells'])
-        inner = col.strip('o')
-        if 'o' in inner:
-            sys.exit(f"{name}: τρύπα στη μέση της κολόνας {x} — τα candies δεν γλιστράνε "
-                     "διαγώνια, ό,τι είναι από κάτω της δεν θα ξαναγέμιζε ποτέ")
+    # Ποια κελιά ξαναγεμίζουν: από την κορυφή (ή κάτω από τρύπες ώς την
+    # κορυφή), από το κελί από πάνω, ή διαγώνια από πάνω-αριστερά/δεξιά. Τα
+    # εμπόδια κάποτε σπάνε· μόνο οι τρύπες μένουν για πάντα.
+    fed = set()
+    while True:
+        new = {(y, x) for y in range(8) for x in range(8) if g[y][x] != 'o' and (
+               all(g[k][x] == 'o' for k in range(y)) or (y - 1, x) in fed or
+               (y - 1, x - 1) in fed or (y - 1, x + 1) in fed)}
+        if new == fed:
+            break
+        fed = new
+    dead = [(y, x) for y in range(8) for x in range(8) if g[y][x] != 'o' and (y, x) not in fed]
+    if dead:
+        sys.exit(f"{name}: τα κελιά {dead} δεν ξαναγεμίζουν ποτέ")
     if lv['goal'] in (1, 3) and not any(ch in 'jJ' for r in lv['cells'] for ch in r):
         sys.exit(f"{name}: στόχος ζελέ χωρίς ζελέ")
 
 
+def mirrored(rows):
+    return all(r == r[::-1] for r in rows)
+
+
 def encode(lv):
-    head = [lv['goal'], *hundreds(lv['stars'][0]), *bcd(lv['moves'], 2),
-            lv['colours'], *bcd(lv['ingredients'], 2),
-            *hundreds(lv['stars'][1]), *hundreds(lv['stars'][2])]
-    cells = [CELLS[ch] for r in lv['cells'] for ch in r]
-    rle, i = [], 0
-    while i < 64:
+    rows = lv['cells']
+    mirror = mirrored(rows)
+    stars = []
+    for p in lv['stars']:
+        if p % STAR_UNIT or not 0 < p // STAR_UNIT < 256:
+            raise ValueError(f"αστέρια: {p} — ανά {STAR_UNIT}, ώς {255 * STAR_UNIT}")
+        stars.append(p // STAR_UNIT)
+    head = [lv['goal'] | (lv['colours'] - 4) << 2 | mirror << 4, *bcd(lv['moves'], 2)]
+    if lv['goal'] & 2:
+        head += bcd(lv['ingredients'], 2)
+    head += stars
+    cells = [KINDS.index(ch) for r in rows for ch in (r[:4] if mirror else r)]
+    runs, i = [], 0
+    while i < len(cells):
         j = i
-        while j < 64 and cells[j] == cells[i]:
+        while j < len(cells) and cells[j] == cells[i] and j - i < 16:
             j += 1
-        rle += [j - i, cells[i]]
+        runs.append(cells[i] << 4 | (j - i - 1))
         i = j
-    return head + rle
+    return head + runs
 
 
 def level_codes(n):
-    codes, salt = [], 0
-    for i in range(n):
-        while True:
-            h = hashlib.sha1(f"sugarbyte/{i + 1}/{salt}".encode()).digest()
-            c = int.from_bytes(h[:4], 'big') % 10000
-            salt += 1
-            if c and c not in codes:
-                break
-        codes.append(c)
+    codes = [(CODE_FIRST + i * CODE_STEP) % 10000 for i in range(n)]
+    assert 0 not in codes and len(set(codes)) == n
     return codes
 
 
@@ -129,20 +149,24 @@ def main():
     src, dst = sys.argv[1], sys.argv[2]
     levels = parse(src)
     out = [f"; ΠΑΡΑΓΕΤΑΙ από το tools/levels.py ({src}) — μην το πειράζεις.", '',
-           f"NLEVELS equ {len(levels)}", '', 'levels_tab:']
-    out += [f"        dw level_{i + 1}" for i in range(len(levels))]
+           f"NLEVELS         equ {len(levels)}",
+           f"CODE_FIRST      equ #{CODE_FIRST:04d}   ; ο κωδικός της πίστας 1, BCD",
+           f"CODE_STEP       equ #{CODE_STEP:04d}   ; + αυτό για κάθε επόμενη", '',
+           'cell_kinds:             ; cell[] ανά είδος: ' + ' '.join(KINDS),
+           '        db ' + ','.join(f"#{CELLS[k]:02X}" for k in KINDS), '', 'levels:']
     total = 0
     for i, lv in enumerate(levels):
-        check(lv)
-        data = encode(lv)
+        try:
+            check(lv)
+            data = encode(lv)
+        except ValueError as e:
+            sys.exit(f"level {lv['name']}: {e}")
         total += len(data)
-        out.append(f"level_{i + 1}:                ; {len(data)} bytes")
+        out.append(f"; πίστα {i + 1}: {len(data)} bytes")
         for k in range(0, len(data), 16):
             out.append('        db ' + ','.join(f"#{b:02X}" for b in data[k:k + 16]))
     out.append('')
-    out.append('level_codes:            ; ο κωδικός κάθε πίστας, 4 ψηφία BCD')
-    for i, c in enumerate(level_codes(len(levels))):
-        out.append(f"        db #{c // 100:02d},#{c % 100:02d}    ; πίστα {i + 1}: {c:04d}")
+    out.append('; οι κωδικοί: ' + ' '.join(f"{i + 1}={c:04d}" for i, c in enumerate(level_codes(len(levels)))))
     open(dst, 'w').write('\n'.join(out) + '\n')
     print(f"{dst}: {len(levels)} πίστες, {total} bytes")
 

@@ -26,6 +26,8 @@ Script lines (';' starts a comment):
                                 board under blockers is emptied. Use after setboard.
   expectcells <row0> ... <row7> assert the cell types (? matches anything)
   countcells <char> <n>         assert how many cells are of that type
+  expectvoice <file>            assert the voice samples sit intact in the screen holes
+                                (#C3C0 + k * #800, 1.088 bytes each)
   expectboard <row0> ... <row7> assert the board (? matches anything, # anything not empty)
   psg <reg> <value>             assert a PSG (AY) register's current value
   psgon <reg>                   assert a PSG volume register is non-zero (something plays)
@@ -298,6 +300,8 @@ def render_wav(log, end_t, path, rate=22050):
             level = ((phase[ch] < 0.5) or not tone_on) and (noise_bit or not noise_on)
             if level and (tone_on or noise_on):
                 acc += vol[regs[8 + ch] & 15]
+            elif not tone_on and not noise_on:  # η ένταση σκέτη: έτσι παίζουν τα δείγματα
+                acc += vol[regs[8 + ch] & 15]
         dc += (acc - dc) * 0.002            # take the DC offset out
         out.append(max(-32767, min(32767, int((acc - dc) * 12000))))
     with wave.open(path, 'wb') as w:
@@ -424,6 +428,13 @@ def main():
             print(f"{'ok  ' if ok else 'FAIL'} cells" + ('' if ok else
                   '\n  got      ' + ' '.join(got[i:i + 8] for i in range(0, 64, 8)) +
                   '\n  expected ' + ' '.join(want[i:i + 8] for i in range(0, 64, 8))))
+        elif cmd == 'expectvoice':
+            blob = open(st[1], 'rb').read()
+            bad = [o for o, b in enumerate(blob)
+                   if cpc.peek(0xC3C0 + (o // 1088) * 0x800 + o % 1088) != b]
+            failures += bool(bad)
+            print(f"{'FAIL' if bad else 'ok  '} voice: {len(blob) - len(bad)}/{len(blob)} bytes στα κενά"
+                  + (f", πρώτο λάθος στο {bad[0]}" if bad else ''))
         elif cmd == 'countcells':
             v = CELL_CHARS[st[1]]
             got = sum((cpc.peek(syms['CELL'] + i) & 0x7F) == v for i in range(64))

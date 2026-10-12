@@ -284,6 +284,9 @@ snd_init:
         ret
 
 sound_tick:
+        ld a,(speaking)         ; μιλάει: ο PSG είναι του say
+        or a
+        ret nz
         call music_tick
         call sfx_tick
         ld hl,psg_shadow        ; οι καταχωρητές 0-10 στον PSG

@@ -449,6 +449,8 @@ draw_char:
         ld e,HUD_SYMBOLS+1
         cp "/"
         jr z,.sym
+        cp "-"
+        jr z,.dash
         cp "A"
         jr nc,.letter
         sub "0"                 ; ψηφίο
@@ -457,6 +459,21 @@ draw_char:
         jr draw_text_glyph
 .sym    ld a,e
         jr draw_glyph
+.dash   push bc                 ; η παύλα: δεν υπάρχει στα γραφικά, τρία pixels
+        ld a,(digit_y)          ; άσπρα στη μέση των κεφαλαίων
+        ld b,HUD_H
+        ld de,HUD_W*256+PB_BLACK
+        call fill_rect
+        pop bc
+        ld a,(digit_y)
+        add a,4
+        call line_addr
+        ld b,0
+        add hl,bc
+        ld (hl),PB_WHITE
+        inc hl
+        ld (hl),PB_WHITE_L
+        ret
 
 ; A = καρέ του text_gfx (TEXT_*), C = byte, digit_y. Δεν πειράζει BC, HL.
 draw_text_glyph:

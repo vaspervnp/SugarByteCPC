@@ -1,0 +1,33 @@
+; Η φωνή (voice.asm): τα δείγματα στα κενά της οθόνης, ανέγγιχτα από τη
+; σχεδίαση· το say αφήνει τον PSG στη μουσική όταν τελειώσει.
+run 1
+expectvoice build/voice.bin
+expect speaking 0
+until state 0 fire 100     ; από το μενού: PLAY
+run 20
+expectvoice build/voice.bin
+psgon 8
+
+; Sugar Crush: «Sugar Crush!» και μετά ό,τι γινόταν
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+poke lv_goal 0
+poke score+1 #30
+poke moves 2
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 11 - 600
+run 2
+expect speaking 0
+until state 7 - 900
+expectvoice build/voice.bin
+
+; ESC στο μενού: η οθόνη ξαναζωγραφίζεται, τα κενά μένουν
+run 1 esc
+run 3
+expect state 9
+expectvoice build/voice.bin

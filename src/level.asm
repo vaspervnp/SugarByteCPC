@@ -2,29 +2,16 @@
 ;
 ; Τα δεδομένα είναι στο build/levels.asm, από το levels/levels.txt.
 
-; A = πίστα (από 0): κεφαλίδα στις μεταβλητές, κελιά στο cell[].
+; A = πίστα (από 0): κεφαλίδα στις μεταβλητές, κελιά στο cell[]. Οι πίστες δεν
+; έχουν πίνακα διευθύνσεων: αποκωδικοποιούνται όλες με τη σειρά ώς τη ζητούμενη.
 load_level:
-        add a,a
-        ld hl,levels_tab
-        call add_hl_a
-        ld a,(hl)
-        inc hl
-        ld h,(hl)
-        ld l,a
-        ld de,lv_goal           ; οι 10 bytes της κεφαλίδας, με τη σειρά τους
-        ld bc,LEVEL_HEAD
-        ldir
-        ld de,cell              ; RLE: (πλήθος, τιμή)
-.rle    ld b,(hl)
-        inc hl
-        ld a,(hl)
-        inc hl
-.run    ld (de),a
-        inc e
-        djnz .run
-        ld a,e
-        cp (cell&#FF)+COLS*ROWS
-        jr c,.rle
+        ld b,a
+        inc b
+        ld hl,levels
+.lv     push bc
+        call decode_level
+        pop bc
+        djnz .lv
         ld a,(lv_colours)
         ld (ncolours),a
         ld a,(lv_moves)
@@ -33,6 +20,99 @@ load_level:
         ld (ingr_left),a
         call bcd2bin
         ld (ingr_spawn),a
+        ret
+
+; HL = πίστα (tools/levels.py) -> HL = η επόμενη.
+decode_level:
+        ld a,(hl)               ; σημαίες
+        inc hl
+        ld c,a
+        and 3
+        ld (lv_goal),a
+        ld a,c
+        rrca
+        rrca
+        and 3
+        add a,4
+        ld (lv_colours),a
+        ld a,(hl)
+        inc hl
+        ld (lv_moves),a
+        xor a
+        bit 1,c                 ; υλικά μόνο αν τα ζητάει ο στόχος
+        jr z,.noingr
+        ld a,(hl)
+        inc hl
+.noingr ld (lv_ingr),a
+        ld de,lv_star1
+        call .star
+        ld de,lv_star2
+        call .star
+        ld de,lv_star3
+        call .star
+        ld e,0                  ; E = κελί του ρεύματος
+.run    ld a,(hl)               ; είδος << 4 | μήκος - 1
+        inc hl
+        push hl
+        ld b,a
+        rrca
+        rrca
+        rrca
+        rrca
+        and 15
+        ld hl,cell_kinds
+        call add_hl_a
+        ld d,(hl)               ; D = τιμή cell[]
+        ld a,b
+        and 15
+        inc a
+        ld b,a
+        ld h,cell>>8
+.put    ld a,e
+        bit 4,c
+        jr z,.plain
+        and #FC                 ; καθρέφτης: γραμμή * 8 + κολόνα, και το είδωλο
+        add a,a
+        ld l,a
+        ld a,e
+        and 3
+        or l
+        or cell&#FF
+        ld l,a
+        ld (hl),d
+        xor 7
+.plain  or cell&#FF
+        ld l,a
+        ld (hl),d
+        inc e
+        djnz .put
+        pop hl
+        ld a,e
+        bit 4,c
+        jr z,.n64
+        add a,a
+.n64    cp COLS*ROWS
+        jr c,.run
+        ret
+; DE = όριο αστεριού: (HL) * 500 πόντοι -> BCD εκατοντάδες, MSB πρώτο.
+.star   ld b,(hl)
+        inc hl
+        push hl
+        ld hl,0
+.five   ld a,l
+        add a,5
+        daa
+        ld l,a
+        ld a,h
+        adc a,0
+        daa
+        ld h,a
+        djnz .five
+        ex de,hl
+        ld (hl),d
+        inc hl
+        ld (hl),e
+        pop hl
         ret
 
 ; A = BCD -> A = δυαδικό

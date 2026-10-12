@@ -236,13 +236,26 @@ fill_rect:
         djnz .row
         ret
 
-; Σβήνει όλη την οθόνη (και τα κενά της σελίδας 32 KB).
+; Σβήνει όλη την οθόνη — όχι τα κενά της σελίδας #C000, που κρατάνε τη φωνή.
 cls:
         ld hl,SCREEN
         ld de,SCREEN+1
-        ld bc,#7FFF
+        ld bc,#3FFF
         ld (hl),0
         ldir
+        ld hl,#C000             ; στη δεύτερη σελίδα, μόνο τα 960 bytes κάθε #800
+.blk    push hl
+        ld d,h
+        ld e,l
+        inc de
+        ld bc,HOLE_START-#C000-1
+        ld (hl),0
+        ldir
+        pop hl
+        ld a,h
+        add a,8
+        ld h,a
+        jr nc,.blk
         ret
 
 ; ---------------------------------------------------------------------------

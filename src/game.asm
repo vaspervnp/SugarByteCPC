@@ -65,7 +65,7 @@ step_state:
 
 state_tab:
         dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam, st_win
-        dw st_code, st_menu, st_scores, st_crush
+        dw st_code, st_menu, st_scores, st_crush, st_slide
 
 ; ---------------------------------------------------------------------------
 ; IDLE: ο δείκτης κινείται και αναβοσβήνει, το SPACE επιλέγει και ανταλλάσσει.
@@ -73,6 +73,7 @@ st_idle:
         ld a,(joy_edge)
         and J_ESC
         jp nz,menu_enter
+        call hint_tick
         ld hl,blink_t
         inc (hl)
         ld a,(hl)
@@ -248,8 +249,68 @@ st_swap:
         ld a,(swap_b)
         jp mark_dirty
 
+; ---------------------------------------------------------------------------
+; Υπόδειξη: μετά από HINT_WAIT καρέ χωρίς πλήκτρο, τα δύο candies μιας κίνησης
+; γέρνουν το ένα προς το άλλο, τέσσερις φορές, και μετά ησυχάζουν για λίγο.
+hint_tick:
+        ld a,(joy)
+        or a
+        jr nz,hint_reset
+        ld hl,hint_t
+        ld a,(hl)
+        cp HINT_WAIT
+        jr nc,.on
+        inc (hl)
+        ret
+.on     inc hl                  ; hint_ph
+        ld a,(hl)
+        inc (hl)
+        or a
+        jr nz,.phase
+        call has_move           ; η πρώτη φορά: ποια κίνηση
+        ld a,e
+        ld (hint_a),a
+        ld a,d
+        ld (hint_b),a
+        xor a
+.phase  ld b,a
+        and 3
+        ret nz
+        ld a,b
+        and 32+4                ; 4 φορές στα 32 καρέ, μετά 32 ήσυχα
+        cp 4
+        jr nz,hint_back
+        ld a,1
+        ld (hint_on),a
+        ld a,(hint_a)
+        ld (swap_a),a
+        ld a,(hint_b)
+        ld (swap_b),a
+        ld b,1
+        jr swap_draw_k
+
+hint_reset:
+        xor a
+        ld (hint_t),a
+        ld (hint_ph),a
+hint_back:
+        ld hl,hint_on           ; τα candies πίσω στη θέση τους
+        ld a,(hl)
+        or a
+        ret z
+        ld (hl),0
+        ld a,(hint_a)
+        call mark_dirty
+        ld a,(hint_b)
+        jp mark_dirty
+
 ; Τα δύο κελιά, με τα candies τους μετατοπισμένα κατά anim_k βήματα.
 swap_draw:
+        ld a,(anim_k)
+        ld b,a
+; ... ή κατά B βήματα.
+swap_draw_k:
+        push bc
         ld a,(swap_a)
         call draw_bg
         ld a,(swap_b)
@@ -268,8 +329,7 @@ swap_draw:
         cp COLS
         jr z,.mul
         ld de,#FC00
-.mul    ld a,(anim_k)
-        ld b,a
+.mul    pop bc
         xor a
         ld c,a
 .m      add a,d
@@ -528,12 +588,27 @@ st_clear:
 start_fall:
         call collect_ingredients
         call fall_scan
-        jr z,resolve_fall
-        xor a
+        ld b,S_FALL
+        jr nz,.go
+        call diag_scan          ; τίποτα κατακόρυφα: ίσως διαγώνια
+        jr nc,resolve_fall
+        ld b,S_SLIDE
+.go     xor a
         ld (anim_k),a
-        ld a,S_FALL
+        ld a,b
         ld (state),a
         ret
+
+st_slide:
+        ld hl,anim_k
+        inc (hl)
+        ld a,(hl)
+        call slide_draw
+        ld a,(anim_k)
+        cp FALL_STEPS
+        ret c
+        call slide_commit
+        jr start_fall
 
 st_fall:
         ld hl,anim_k
@@ -552,7 +627,8 @@ resolve_fall:
         inc (hl)
         call find_matches
         jp nz,start_clear
-        call goal_met           ; SETTLE
+        call say_praise         ; SETTLE: «Sweet!» για τις μακριές αλυσίδες
+        call goal_met
         jr c,.win
         ld a,(moves)
         or a
@@ -646,8 +722,9 @@ start_crush:
         ld (anim_k),a
         ld a,S_CRUSH
         ld (state),a
-        ld hl,sfx_win
-        jp play_sfx
+        ld hl,VOICE_CRUSH
+        ld de,VOICE_CRUSH_LEN
+        jp say
 
 st_crush:
         ld hl,anim_k

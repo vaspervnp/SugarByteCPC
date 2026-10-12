@@ -1,0 +1,22 @@
+; Υπόδειξη: μετά από 5 δευτερόλεπτα χωρίς πλήκτρο, η πρώτη κίνηση (6 <-> 7: 444)
+; κουνιέται· ένα πλήκτρο τη σταματάει.
+run 1
+until state 0 fire 100     ; από το μενού: PLAY
+run 20
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+poke cursor 0
+run 200
+expect hint_on 0
+until hint_on 1 - 80
+expect hint_a 6
+expect hint_b 7
+shot hint
+until hint_on 0 - 10
+until hint_on 1 - 10
+run 1 right
+run 1
+expect hint_on 0
+expect hint_t 1
+run 10
+shot hint_after
+expect hint_on 0

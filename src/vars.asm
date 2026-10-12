@@ -59,7 +59,7 @@ beams           defs MAX_BEAMS  ; γραμμή 0-7, ή κολόνα | #80
 clear_n         defs 1          ; πόσα κελιά σκάνε
 beam_fr         defs 1
 beam_step       defs 1
-lv_goal         defs 1          ; η κεφαλίδα της πίστας, με τη σειρά του levels.py
+lv_goal         defs 1          ; η κεφαλίδα της πίστας (tools/levels.py)
 lv_star1        defs 2
 lv_moves        defs 1
 lv_colours      defs 1
@@ -71,25 +71,34 @@ win_n           defs 1
 code_dig        defs 4          ; ο κωδικός που γράφεται, ένα ψηφίο το byte
 code_pos        defs 1
 menu_tmp        defs 1
+scores_pg       defs 1          ; η σελίδα του SCORES
 menu_buf        defs 12         ; η ετικέτα ενός πιάτου που αλλάζει
 boom            defs 1          ; έσκασε περιτύλιγμα σε αυτό το RESOLVE
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
 fall_y          defs 1
 digit_y         defs 1
+hint_t          defs 1          ; καρέ αδράνειας στο IDLE, ώς HINT_WAIT
+hint_ph         defs 1          ; η φάση του κουνήματος
+hint_on         defs 1          ; 1 = τα candies της υπόδειξης είναι μετατοπισμένα
+hint_a          defs 1          ; η κίνηση που δείχνει
+hint_b          defs 1
+slide_s         defs 1          ; το διαγώνιο γλίστρημα: από ...
+slide_t         defs 1          ; ... προς
 vars_end
 
 ; Ο ήχος: έξω από τα vars_start..vars_end, γιατί το game_new τα μηδενίζει ενώ
 ; η διακοπή τρέχει.
 cur_level       defs 1          ; η πίστα, από 0 — δεν τη μηδενίζει το game_new
 menu_sel        defs 1          ; η επιλογή του μενού
-best            defs 4*32       ; ανά πίστα: πόντοι BCD (3), αστέρια (1)
+best            defs 4*MAX_LEVELS      ; ανά πίστα: πόντοι BCD (3), αστέρια (1)
 snd_start
 psg_shadow      defs 11         ; οι καταχωρητές 0-10 του AY
 int_zone        defs 1          ; ποια από τις 6 διακοπές του καρέ (0 = στο VSYNC)
 raster_t        defs 1          ; καρέ, για τον ρυθμό των raster
 raster_rot      defs 1          ; ο κύκλος των χρωμάτων του τίτλου, 0-5
 foot_phase      defs 1          ; οι ρίγες του ποδιού: 0 κανονικά, 1 ανάποδα
+speaking        defs 1          ; 1 = το say κρατάει τον PSG
 mus_on          defs 1
 mus_ptr         defs 2
 mus_wait        defs 1

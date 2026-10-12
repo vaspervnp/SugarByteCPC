@@ -23,7 +23,6 @@ ROWS            equ 8
 EMPTY           equ 7           ; board[]: χρώμα 7 = κενό κελί
 BOMB            equ 6           ; board[]: χρώμα 6 = βόμβα χρώματος
 INGREDIENT      equ #20         ; board[] bit 5: υλικό· bit 0: 0 κεράσι, 1 φουντούκι
-LEVEL_HEAD      equ 10          ; bytes κεφαλίδας πίστας (tools/levels.py)
 G_SCORE         equ 0           ; στόχοι πίστας
 G_JELLY         equ 1
 G_INGREDIENTS   equ 2
@@ -33,6 +32,7 @@ F_STRIPED_H     equ 1<<3        ; board[] bits 3-4: η μορφή
 F_STRIPED_V     equ 2<<3
 F_WRAPPED       equ 3<<3
 MAX_RUNS        equ 24
+MAX_LEVELS      equ 64          ; ο πίνακας best[]: 4 bytes η πίστα, offset σε 8 bits
 
 ; cell[]: τύπος στα bits 0-2
 C_NORMAL        equ 0
@@ -71,12 +71,15 @@ PB_BLACK        equ #00
 PB_BLUE         equ #CC         ; pen 3 + pen 3
 PB_GREY         equ #0C         ; pen 2 + pen 2
 PB_GREY_BLUE    equ #4C         ; pen 2 αριστερά, pen 3 δεξιά
+PB_WHITE        equ #C0         ; pen 1 + pen 1
+PB_WHITE_L      equ #80         ; pen 1 αριστερά, pen 0 δεξιά
 
 ; --- ο χρόνος ----------------------------------------------------------------
 DRAW_BUDGET     equ 4           ; βρώμικα κελιά το καρέ (ένα κελί με δείκτη ≈ 5 ms)
 SWAP_FRAMES     equ 6           ; 1 byte ή 4 γραμμές το καρέ
 FALL_STEPS      equ 2           ; ένα κελί πτώσης σε 2 βήματα των 12 γραμμών
 FALL_STEP_Y     equ CELL_H/FALL_STEPS
+HINT_WAIT       equ 250         ; 5 δευτερόλεπτα αδράνειας: η υπόδειξη
 REP_FIRST       equ 12          ; repeat του δείκτη: πρώτη επανάληψη
 REP_NEXT        equ 3           ; ... και μετά
 
@@ -102,6 +105,7 @@ S_CODE         equ 8
 S_MENU         equ 9
 S_SCORES       equ 10
 S_CRUSH        equ 11
+S_SLIDE        equ 12           ; ένα candy γλιστράει διαγώνια
 CRUSH_FRAMES   equ 5            ; καρέ ανά κίνηση που γίνεται ριγέ
 MAX_BEAMS       equ 16
 BIG_CLEAR       equ 24          ; πάνω από τόσα κελιά: σκάσιμο σε 2 φάσεις, όχι 4

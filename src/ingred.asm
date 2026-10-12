@@ -30,18 +30,28 @@ try_ingredient:
         ld (hl),a
         ret
 
-; Όσα υλικά κάθονται στη βάση φεύγουν: 1.000 πόντοι το καθένα.
+; Όσα υλικά κάθονται στη βάση, ή πάνω από τρύπα, φεύγουν: 1.000 πόντοι το καθένα.
 ; NZ αν μαζεύτηκε κάτι (άρα υπάρχει κενό να γεμίσει).
 collect_ingredients:
         ld c,0
-        ld l,COLS*(ROWS-1)
+        ld l,c
         ld h,board>>8
 .cell   ld a,(hl)
         cp EMPTY
         jr z,.next
         bit 5,a
         jr z,.next
-        ld (hl),EMPTY
+        ld a,l                  ; στη βάση, ή ακριβώς πάνω από τρύπα
+        cp COLS*(ROWS-1)
+        jr nc,.out
+        add a,COLS+(cell&#FF)
+        ld e,a
+        ld d,h
+        ld a,(de)
+        and 7
+        cp C_HOLE
+        jr nz,.next
+.out    ld (hl),EMPTY
         inc c
         push bc
         push hl

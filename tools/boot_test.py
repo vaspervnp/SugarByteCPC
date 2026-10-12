@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Φορτώνει τη δισκέτα σε πλήρη εξομοιωτή CPC 6128 (firmware, AMSDOS, FDC) και
-ελέγχει ότι το παιχνίδι ξεκινάει: RUN"SUGAR, Mode 0, το μενού, SPACE στο PLAY,
-ο δείκτης κινείται με τα βελάκια. Screenshots: boot_menu.png, boot.png.
+ελέγχει ότι το παιχνίδι ξεκινάει: RUN"SUGAR, η οθόνη REVIVE8BIT, SPACE, Mode 0, το μενού, SPACE στο PLAY,
+ο δείκτης κινείται με τα βελάκια. Screenshots: boot_splash.png, boot_menu.png, boot.png.
 
   boot_test.py build/sugar.dsk --out build/shots
 
@@ -39,9 +39,16 @@ def main():
     c.run_frames(120)
     c.insert_disc(args.dsk)
     c.type_text('RUN"SUGAR\n')
-    c.run_frames(400)                       # φόρτωμα ~30 KB + πρώτο ζωγράφισμα
+    c.run_frames(250)                       # SUGAR.BAS + REVIVE8B.SCR (16 KB)
 
     fails = []
+    c.screenshot(os.path.join(args.out, 'boot_splash.png'), aspect=True)
+    if not any(c.read_ram(0xC000, 0x4000)):
+        fails.append('η οθόνη REVIVE8BIT δεν φορτώθηκε')
+    c.key_down(KEY_SPACE)                   # χωρίς να περιμένει τα 10 s
+    c.run_frames(3)
+    c.key_up(KEY_SPACE)
+    c.run_frames(400)                       # φόρτωμα του SUGAR.BIN + πρώτο ζωγράφισμα
     if c.mode != 0:
         fails.append(f'mode {c.mode}, όχι 0')
     if c.read_ram(syms['STATE'], 1)[0] != 9:

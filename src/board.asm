@@ -695,3 +695,106 @@ fall_commit:
         cp COLS
         jr c,.col
         ret
+
+; ---------------------------------------------------------------------------
+; Διαγώνιο γλίστρημα: όταν τίποτα δεν πέφτει κατακόρυφα, ένα κενό που δεν
+; γεμίζει από πάνω (κάτω από εμπόδιο ή τρύπα) παίρνει το candy από πάνω-αριστερά
+; ή πάνω-δεξιά. Ένα τη φορά, από κάτω προς τα πάνω· μετά ξανά η βαρύτητα.
+; Carry αν βρέθηκε: slide_s = από πού, slide_t = πού.
+diag_scan:
+        ld h,board>>8
+        ld l,COLS*ROWS-1
+.cell   ld a,(hl)
+        cp EMPTY
+        jr nz,.next
+        call blocked
+        jr nz,.next
+        ld e,l                  ; E = το κενό
+        ld a,l
+        and 7
+        jr z,.right
+        ld a,l                  ; πάνω-αριστερά
+        sub COLS+1
+        call .src
+        ret c
+.right  ld a,e
+        and 7
+        cp 7
+        jr z,.back
+        ld a,e                  ; πάνω-δεξιά
+        sub COLS-1
+        call .src
+        ret c
+.back   ld l,e
+.next   dec l
+        ld a,l
+        cp COLS
+        jr nc,.cell
+        or a
+        ret
+; A = πηγή, E = κενό. Carry αν η πηγή έχει κάτι που κινείται.
+.src    ld l,a
+        call blocked
+        ret nz
+        ld a,(hl)
+        cp EMPTY
+        ret z
+        ld a,l
+        ld (slide_s),a
+        ld a,e
+        ld (slide_t),a
+        scf
+        ret
+
+; A = βήμα 1..FALL_STEPS: το candy ανάμεσα στα δύο κελιά.
+slide_draw:
+        assert FALL_STEP_Y == 12 && CELL_WB/FALL_STEPS == 3
+        push af
+        ld a,(slide_s)
+        call draw_bg
+        ld a,(slide_t)
+        call draw_bg
+        ld a,(slide_s)
+        call cell_xy
+        pop af
+        ld d,a
+        add a,a                 ; γραμμές: βήμα * 12
+        add a,d
+        add a,a
+        add a,a
+        add a,b
+        ld b,a
+        ld a,d                  ; bytes: βήμα * 3, προς το κενό
+        add a,a
+        add a,d
+        ld d,a
+        ld a,(slide_s)
+        ld e,a
+        ld a,(slide_t)
+        sub e
+        cp COLS+1
+        ld a,c
+        jr z,.r
+        sub d
+        sub d
+.r      add a,d
+        ld c,a
+        ld l,e
+        ld h,board>>8
+        ld a,(hl)
+        jp draw_candy_at
+
+; Το candy αλλάζει κελί· οι δύο γωνίες που πέρασε από πάνω τους ξαναζωγραφίζονται.
+slide_commit:
+        ld a,(slide_s)
+        ld l,a
+        ld h,board>>8
+        ld b,(hl)
+        ld (hl),EMPTY
+        add a,COLS
+        call mark_dirty         ; κάτω από την πηγή
+        ld a,(slide_t)
+        ld l,a
+        ld (hl),b
+        sub COLS
+        jp mark_dirty           ; πάνω από το κενό
