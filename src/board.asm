@@ -47,7 +47,10 @@ mcol:
 ; Γεμίζει το ταμπλό χωρίς έτοιμες τριάδες και με τουλάχιστον μία κίνηση.
 fill_board:
         ld hl,board
-.cell   call rand_colour
+.cell   call blocked
+        ld c,EMPTY
+        jr nz,.ok
+        call rand_colour
         ld c,a
         ld a,l                  ; δύο ίδια αριστερά;
         and 7
@@ -122,6 +125,7 @@ find_matches:
         ret z
         call plan_specials
         call expand_specials
+        call mark_blocker_damage
         ld a,(nmatch)
         or a
         ret
@@ -260,7 +264,13 @@ try_swap:
         ld b,(hl)
         ld l,d
         ld c,(hl)
-        ld a,b                  ; βόμβα δίπλα σε οτιδήποτε: κίνηση
+        ld a,b                  ; κενό ή εμπόδιο: δεν ανταλλάσσεται
+        cp EMPTY
+        ret z
+        ld a,c
+        cp EMPTY
+        ret z
+        ld a,b                  ; βόμβα δίπλα σε candy: κίνηση
         cp BOMB
         jr z,.bomb
         ld a,c
@@ -358,44 +368,80 @@ line_at:
         ret
 
 ; ---------------------------------------------------------------------------
-; Βαρύτητα (plan.md §8.4), ένα κελί τη φορά: σε κάθε κολόνα με κενό, ό,τι
-; είναι πάνω από το χαμηλότερο κενό κατεβαίνει μία θέση και ένα καινούργιο
-; candy μπαίνει από την κορυφή.
+; Βαρύτητα (plan.md §8.4), ένα κελί τη φορά. Σε κάθε κολόνα: το χαμηλότερο
+; κενό που μπορεί να γεμίσει, και το τμήμα από πάνω του ώς το πρώτο εμπόδιο
+; (ή την κορυφή). Ό,τι είναι στο τμήμα κατεβαίνει μία θέση· αν το τμήμα αρχίζει
+; στην κορυφή, μπαίνει καινούργιο candy. Τίποτα δεν περνάει από εμπόδιο.
 
-; gap[x] = γραμμή του χαμηλότερου κενού (#FF = καμία), nextc[x] = το candy που
-; μπαίνει. NZ αν κάποια κολόνα πέφτει.
+; L = κελί -> NZ αν το κελί είναι εμπόδιο ή τρύπα. Δεν πειράζει HL.
+blocked:
+        set 7,l                 ; cell = board | #80
+        ld a,(hl)
+        res 7,l
+        and 7
+        ret
+
+; gap[x] = γραμμή του κενού που γεμίζει (#FF = κανένα), segtop[x] = πρώτη
+; γραμμή του τμήματος, nextc[x] = το candy που μπαίνει. NZ αν κάτι πέφτει.
 fall_scan:
-        ld de,gap
         ld c,0
         ld ixh,0
-.col    ld h,board>>8
-        ld a,c
-        add a,COLS*(ROWS-1)
+.col    ld d,ROWS-1             ; D = υποψήφιο κενό
+.try    ld a,d
+        add a,a
+        add a,a
+        add a,a
+        add a,c
         ld l,a
-.up     ld a,(hl)
+        ld h,board>>8
+        ld a,(hl)
         cp EMPTY
-        jr z,.found
+        jr nz,.up
+        call blocked
+        jr nz,.up
+        ld e,d
+.scan   dec e                   ; από πάνω: κενά ώς την κορυφή, ή ένα candy;
+        jp m,.top
         ld a,l
         sub COLS
         ld l,a
-        jr nc,.up
-        ld a,#FF
-        jr .store
-.found  ld ixh,1
+        call blocked
+        jr nz,.up               ; εμπόδιο πριν από candy: δεν γεμίζει
+        ld a,(hl)
+        cp EMPTY
+        jr z,.scan
+.seg    dec e                   ; βρέθηκε candy: πού αρχίζει το τμήμα;
+        jp m,.top
         ld a,l
-        rrca
-        rrca
-        rrca
-        and 7
-.store  ld (de),a
-        push de
+        sub COLS
+        ld l,a
+        call blocked
+        jr z,.seg
+        inc e
         ld a,e
-        add a,COLS
-        ld e,a                  ; nextc = gap + COLS
+        jr .store
+.top    xor a
+.store  ld hl,segtop
+        ld b,a
+        ld a,c
+        call add_hl_a
+        ld (hl),b
+        ld ixh,1
+        ld a,d
+        jr .gap
+.up     dec d
+        jp p,.try
+        ld a,#FF
+.gap    ld hl,gap
+        ld b,a
+        ld a,c
+        call add_hl_a
+        ld (hl),b
+        ld hl,nextc
+        ld a,c
+        call add_hl_a
         call rand_colour
-        ld (de),a
-        pop de
-        inc de
+        ld (hl),a
         inc c
         ld a,c
         cp COLS
@@ -404,7 +450,7 @@ fall_scan:
         or a
         ret
 
-; A = βήμα 1..FALL_STEPS: ζωγραφίζει τις κολόνες που πέφτουν.
+; A = βήμα 1..FALL_STEPS: ζωγραφίζει τα τμήματα που πέφτουν.
 fall_draw:
         assert FALL_STEP_Y == 8
         add a,a
@@ -414,16 +460,28 @@ fall_draw:
         ld c,0
 .col    ld hl,gap
         ld a,c
-        add a,l
-        ld l,a
+        call add_hl_a
         ld a,(hl)
         cp #FF
-        jr z,.next
+        jp z,.next
         push bc
-        ; τα φόντα από την κορυφή ώς το κενό
-        ld b,a                  ; B = γραμμή του κενού
-        ld a,c                  ; A = κελί
-.bg     push af
+        ld e,a                  ; E = το κενό
+        ld hl,segtop
+        ld a,c
+        call add_hl_a
+        ld d,(hl)               ; D = η κορυφή του τμήματος
+        ld a,e
+        sub d
+        ld b,a                  ; B = πόσα κελιά πέφτουν
+        ld a,d
+        add a,a
+        add a,a
+        add a,a
+        add a,c
+        ld (fall_c0),a
+        push bc
+        push de
+.bg     push af                 ; τα φόντα του τμήματος, μαζί με το κενό
         push bc
         call draw_bg
         pop bc
@@ -431,19 +489,14 @@ fall_draw:
         add a,COLS
         dec b
         jp p,.bg
+        pop de
         pop bc
-        push bc
-        ; τα candies πάνω από το κενό, μετατοπισμένα
-        ld hl,gap
-        ld a,c
-        add a,l
-        ld l,a
-        ld b,(hl)               ; πόσα candies πέφτουν
-        ld a,c                  ; κελί
-.candy  dec b
+        ld a,(fall_c0)
+.candy  dec b                   ; τα candies του τμήματος, μετατοπισμένα
         jp m,.new
         push af
         push bc
+        push de
         ld l,a
         ld h,board>>8
         push hl
@@ -454,44 +507,53 @@ fall_draw:
         pop hl
         ld a,(hl)
         call draw_candy_at
+        pop de
         pop bc
         pop af
         add a,COLS
         jr .candy
-.new    ; το καινούργιο, πάνω από την κορυφή και κομμένο
-        pop bc
+.new    pop bc
         push bc
+        ld a,d                  ; καινούργιο μόνο αν το τμήμα αρχίζει στην κορυφή
+        or a
+        jr nz,.done
         ld hl,nextc
         ld a,c
-        add a,l
-        ld l,a
+        call add_hl_a
         ld e,(hl)
         ld a,c
         call cell_xy            ; C = στήλη, B = BOARD_Y
         ld a,(fall_y)
         add a,b
-        sub CELL_H
+        sub CELL_H              ; πάνω από το ταμπλό: κόβεται
         ld b,a
         ld a,e
         call draw_candy_at
-        pop bc
+.done   pop bc
 .next   inc c
         ld a,c
         cp COLS
-        jr c,.col
+        jp c,.col
         ret
 
-; Κάθε κολόνα που πέφτει κατεβαίνει μία θέση· το nextc μπαίνει στην κορυφή.
+; Κάθε τμήμα που πέφτει κατεβαίνει μία θέση.
 fall_commit:
         ld c,0
 .col    ld hl,gap
         ld a,c
-        add a,l
-        ld l,a
+        call add_hl_a
         ld a,(hl)
         cp #FF
         jr z,.next
-        ld b,a                  ; γραμμή του κενού
+        ld e,a
+        ld hl,segtop
+        ld a,c
+        call add_hl_a
+        ld d,(hl)
+        ld a,e
+        sub d
+        ld b,a                  ; B = πόσα κελιά πέφτουν
+        ld a,e
         add a,a
         add a,a
         add a,a
@@ -502,18 +564,27 @@ fall_commit:
         jp m,.top
         ld a,l
         sub COLS
-        ld e,a
-        ld d,h
-        ld a,(de)
-        ld (hl),a
-        ld l,e
+        ld l,a
+        ld e,(hl)               ; το από πάνω ...
+        ld a,l
+        add a,COLS
+        ld l,a
+        ld (hl),e               ; ... κατεβαίνει
+        ld a,l
+        sub COLS
+        ld l,a
         jr .shift
-.top    ld de,nextc
+.top    ld a,d                  ; η κορυφή του τμήματος: καινούργιο ή κενό
+        or a
+        ld a,EMPTY
+        jr nz,.put
+        push hl
+        ld hl,nextc
         ld a,c
-        add a,e
-        ld e,a
-        ld a,(de)
-        ld (hl),a
+        call add_hl_a
+        ld a,(hl)
+        pop hl
+.put    ld (hl),a
 .next   inc c
         ld a,c
         cp COLS

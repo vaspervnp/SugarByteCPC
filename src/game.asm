@@ -24,6 +24,10 @@ game_new:
         ld (sel),a
         ld a,3*COLS+3
         ld (cursor),a
+        ld hl,demo_cells
+        ld de,cell
+        ld bc,COLS*ROWS
+        ldir
         call fill_board
         call draw_board_all
         call hud_init
@@ -107,6 +111,11 @@ st_idle:
         ret z
         ld a,(cursor)
         ld c,a
+        ld l,a                  ; σε κενό ή εμπόδιο: τίποτα
+        ld h,board>>8
+        ld a,(hl)
+        cp EMPTY
+        ret z
         ld a,(sel)
         cp #FF
         jr nz,.has_sel
@@ -128,7 +137,9 @@ st_idle:
         call mark_dirty
         ld a,b
         jp mark_dirty
-.swap   ld a,b
+.swap   xor a
+        ld (choc_broken),a
+        ld a,b
         ld (swap_a),a
         ld a,c
         ld (swap_b),a
@@ -339,6 +350,9 @@ st_clear:
         res 6,l
         ld (hl),EMPTY
         push bc
+        call apply_damage       ; ζελέ από κάτω, ή εμπόδιο που σπάει
+        pop bc
+        push bc
         ld a,c
         call draw_bg
         pop bc
@@ -397,6 +411,7 @@ resolve_fall:
         ld a,(moves)            ; SETTLE
         or a
         jr z,.over
+        call spread_chocolate
         call has_move
         jr c,.idle
         call fill_board         ; αδιέξοδο: καινούργιο ταμπλό

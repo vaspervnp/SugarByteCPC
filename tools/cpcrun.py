@@ -18,7 +18,12 @@ Script lines (';' starts a comment):
   print <addr> [count]          print bytes (hex)
   board                         print the 8x8 board
   setboard <row0> ... <row7>    write the board (8 cells a row, see cell_value) and
-                                queue every cell for redraw through the game's dirty list
+                                queue every cell for redraw through the game's dirty list;
+                                every cell becomes a plain one
+  setcells <row0> ... <row7>    the cell types (one char a cell, see CELL_CHARS); the
+                                board under blockers is emptied. Use after setboard.
+  expectcells <row0> ... <row7> assert the cell types (? matches anything)
+  countcells <char> <n>         assert how many cells are of that type
   expectboard <row0> ... <row7> assert the board (? matches anything)
   psg <reg> <value>             assert a PSG (AY) register's current value
   psgon <reg>                   assert a PSG volume register is non-zero (something plays)
@@ -285,6 +290,12 @@ def cell_char(v):
     return chr(ord('0Aau'[v >> 3]) + (v & 7)) if v < 32 else f"<{v:x}>"
 
 
+# Ένας χαρακτήρας ανά cell[]: . κανονικό, j/J ζελέ 1/2, 1-3 γλάσο, c σοκολάτα,
+# l γλυκόριζα, o τρύπα.
+CELL_CHARS = {'.': 0x00, 'j': 0x20, 'J': 0x40, '1': 0x0A, '2': 0x12, '3': 0x1A,
+              'c': 0x03, 'l': 0x04, 'o': 0x01}
+
+
 def parse_value(v, cpc, syms):
     """#hex, decimal, or a symbol (its address)."""
     if v.startswith('#'):
@@ -348,11 +359,32 @@ def main():
             b = syms['BOARD']
             for i, ch in enumerate(''.join(st[1:9])):
                 cpc.poke(b + i, cell_value(ch))
-                cpc.poke(syms['CELL'] + i, cpc.peek(syms['CELL'] + i) | 0x80)
+                cpc.poke(syms['CELL'] + i, 0x80)
                 cpc.poke(syms['DIRTY_Q'] + i, i)
             cpc.poke(syms['DQ_HEAD'], 0)
             cpc.poke(syms['DQ_TAIL'], 0)
             cpc.poke(syms['DQ_N'], 64)
+        elif cmd == 'setcells':
+            for i, ch in enumerate(''.join(st[1:9])):
+                v = CELL_CHARS[ch]
+                cpc.poke(syms['CELL'] + i, v | 0x80)
+                if v & 7:
+                    cpc.poke(syms['BOARD'] + i, 7)
+        elif cmd == 'expectcells':
+            inv = {v: k for k, v in CELL_CHARS.items()}
+            want = ''.join(st[1:9])
+            got = ''.join(inv.get(cpc.peek(syms['CELL'] + i) & 0x7F, '?') for i in range(64))
+            ok = all(w in ('?', g) for w, g in zip(want, got))
+            failures += not ok
+            print(f"{'ok  ' if ok else 'FAIL'} cells" + ('' if ok else
+                  '\n  got      ' + ' '.join(got[i:i + 8] for i in range(0, 64, 8)) +
+                  '\n  expected ' + ' '.join(want[i:i + 8] for i in range(0, 64, 8))))
+        elif cmd == 'countcells':
+            v = CELL_CHARS[st[1]]
+            got = sum((cpc.peek(syms['CELL'] + i) & 0x7F) == v for i in range(64))
+            ok = got == int(st[2])
+            failures += not ok
+            print(f"{'ok  ' if ok else 'FAIL'} cells '{st[1]}' = {got} (expected {st[2]})")
         elif cmd == 'expectboard':
             b = syms['BOARD']
             want = ''.join(st[1:9])

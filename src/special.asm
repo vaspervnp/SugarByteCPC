@@ -368,7 +368,7 @@ hit_cell:
         ld h,board>>8
         ld a,(hl)
         cp EMPTY
-        jr z,.out
+        jr z,.blocker
         bit 5,a                 ; τα υλικά δεν σκάνε
         jr nz,.out
         set 6,l
@@ -384,6 +384,13 @@ hit_cell:
         pop bc
 .out    pop hl
         ret
+.blocker                        ; εμπόδιο: παθαίνει ζημιά
+        ld a,l
+        call breakable
+        jr z,.out
+        set 6,l
+        set M_BLOCKER_BIT,(hl)
+        jr .out
 
 ; ---------------------------------------------------------------------------
 ; Μετά την ανταλλαγή: αν πήρε μέρος βόμβα ή ήταν δύο ειδικά, ο συνδυασμός
@@ -509,6 +516,7 @@ combo_swap:
         cp COLS*ROWS
         jr c,.al
 .done   call expand_specials
+        call mark_blocker_damage
         scf
         ret
 

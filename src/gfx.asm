@@ -222,13 +222,8 @@ cls:
 draw_bg:
         ld c,a
         call cell_addr
-        ld a,c                  ; σκακιέρα: (cx ^ cy) & 1
-        rrca
-        rrca
-        rrca
-        xor c
-        and 1
         push hl
+        call cell_frame
         ld hl,cells_ptr
         call ptr_lookup
         pop hl

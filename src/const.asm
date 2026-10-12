@@ -13,6 +13,21 @@ F_STRIPED_H     equ 1<<3        ; board[] bits 3-4: η μορφή
 F_STRIPED_V     equ 2<<3
 F_WRAPPED       equ 3<<3
 MAX_RUNS        equ 24
+
+; cell[]: τύπος στα bits 0-2
+C_NORMAL        equ 0
+C_HOLE          equ 1
+C_ICING         equ 2
+C_CHOCOLATE     equ 3
+C_LICORICE      equ 4
+ICING_SHIFT     equ 3
+ICING_MASK      equ 3<<ICING_SHIFT
+JELLY_SHIFT     equ 5
+JELLY_MASK      equ 3<<JELLY_SHIFT
+
+; matched[]: bit 4 = εμπόδιο που παθαίνει ζημιά
+M_BLOCKER_BIT   equ 4
+M_BLOCKER       equ 1<<M_BLOCKER_BIT
 MAX_SPAWN       equ 16
 FORM_SHIFT      equ 3           ; board[] bits 3-4: η μορφή του candy
 
