@@ -260,41 +260,71 @@ fire_special:
         ld d,a
         jp mark_colour
 .row    ld a,c
-        and #38
+        call cell_row
+        jp hit_row
+.col    ld a,c
+        and 7
+        jp hit_col
+.wrap   ld a,1
+        jp hit_area
+
+; A = κελί -> A = γραμμή
+cell_row:
+        rrca
+        rrca
+        rrca
+        and 7
+        ret
+
+; A = γραμμή (>= 8: τίποτα): χτυπάει όλη τη γραμμή. Δεν πειράζει C, DE, HL.
+hit_row:
+        cp ROWS
+        ret nc
+        add a,a
+        add a,a
+        add a,a
         ld b,COLS
-.rl     push af
+.l      push af
         call hit_cell
         pop af
         inc a
-        djnz .rl
+        djnz .l
         ret
-.col    ld a,c
-        and 7
+
+; A = κολόνα (>= 8: τίποτα): χτυπάει όλη την κολόνα. Δεν πειράζει C, DE, HL.
+hit_col:
+        cp COLS
+        ret nc
         ld b,ROWS
-.cl     push af
+.l      push af
         call hit_cell
         pop af
         add a,COLS
-        djnz .cl
+        djnz .l
         ret
-.wrap   ld a,c                  ; 3x3 γύρω από το κελί
-        and 7
-        ld e,a
+
+; C = κέντρο, A = ακτίνα: χτυπάει το τετράγωνο (2A+1)x(2A+1), κομμένο στο ταμπλό.
+hit_area:
+        ld b,a
         ld a,c
-        rrca
-        rrca
-        rrca
         and 7
-        dec a
-        ld d,a                  ; D = πρώτη γραμμή (μπορεί -1)
-        ld b,3
+        sub b
+        ld e,a                  ; E = πρώτη κολόνα (μπορεί < 0)
+        ld a,c
+        call cell_row
+        sub b
+        ld d,a                  ; D = πρώτη γραμμή (μπορεί < 0)
+        ld a,b
+        add a,a
+        inc a
+        ld b,a                  ; B = γραμμές που μένουν
+        ld c,a                  ; C = πλευρά
 .wy     push bc
         ld a,d
         cp ROWS
         jr nc,.ny
-        ld b,3
+        ld b,c
         ld a,e
-        dec a
 .wx     cp COLS
         jr nc,.nx
         push af
@@ -356,9 +386,16 @@ hit_cell:
         ret
 
 ; ---------------------------------------------------------------------------
-; Μετά την ανταλλαγή: αν πήρε μέρος βόμβα, σκάνε όλα τα candies του χρώματος
-; του άλλου (δύο βόμβες: όλο το ταμπλό). Carry αν έγινε, με το matched[] έτοιμο.
-bomb_swap:
+; Μετά την ανταλλαγή: αν πήρε μέρος βόμβα ή ήταν δύο ειδικά, ο συνδυασμός
+; (plan.md §8.3). Carry αν έγινε κάτι, με το matched[] έτοιμο.
+;
+;   βόμβα + απλό          όλα τα candies εκείνου του χρώματος
+;   βόμβα + ριγέ/περιτ.   όλα εκείνου του χρώματος γίνονται ριγέ/περιτ. και σκάνε
+;   βόμβα + βόμβα         όλο το ταμπλό
+;   ριγέ + ριγέ           γραμμή και κολόνα
+;   ριγέ + περιτύλιγμα    σταυρός πάχους 3
+;   περιτ. + περιτ.       5x5
+combo_swap:
         ld h,board>>8
         ld a,(swap_a)
         ld l,a
@@ -368,28 +405,81 @@ bomb_swap:
         ld c,(hl)
         ld a,b
         cp BOMB
-        jr z,.at_a
+        jr z,.bomb_a
         ld a,c
         cp BOMB
-        jr z,.at_b
-        or a
-        ret
-.at_b   ld a,(swap_b)
+        jr z,.bomb_b
+        ld a,b                  ; δύο ριγέ / περιτυλίγματα;
+        call special_kind
+        ret z
+        ld d,a
+        ld a,c
+        call special_kind
+        ret z
+        ld e,a                  ; D, E = τα δύο είδη (1-3)
+        push de
+        call clear_matched
+        call fire_both          ; τα ίδια σκάνε, χωρίς το δικό τους εφέ
+        pop de
+        ld a,(swap_b)
+        ld c,a                  ; το κέντρο: εκεί που πήγε το candy του παίκτη
+        ld a,d
+        cp 3
+        jr nz,.not_ww
+        ld a,e
+        cp 3
+        jr nz,.cross
+        ld a,2                  ; περιτύλιγμα + περιτύλιγμα
+        call hit_area
+        jp .done
+.not_ww ld a,e
+        cp 3
+        jr z,.cross
+        ld a,c                  ; ριγέ + ριγέ
+        call cell_row
+        call hit_row
+        ld a,c
+        and 7
+        call hit_col
+        jp .done
+.cross  ld a,c                  ; ριγέ + περιτύλιγμα: 3 γραμμές, 3 κολόνες
+        call cell_row
+        dec a
+        ld b,3
+.rows   push af
+        push bc
+        call hit_row
+        pop bc
+        pop af
+        inc a
+        djnz .rows
+        ld a,c
+        and 7
+        dec a
+        ld b,3
+.cols   push af
+        push bc
+        call hit_col
+        pop bc
+        pop af
+        inc a
+        djnz .cols
+        jp .done
+
+.bomb_b ld a,(swap_b)
         ld e,a
         ld a,b
-        jr .go
-.at_a   ld a,(swap_a)
+        jr .bomb
+.bomb_a ld a,(swap_a)
         ld e,a
         ld a,c
-.go     cp BOMB
+.bomb   ld d,a                  ; D = το άλλο, E = το κελί της βόμβας
+        cp BOMB
         jr z,.ok
-        ld d,a
         call mcol
         cp 6
         ret nc                  ; βόμβα με υλικό: τίποτα (carry καθαρό)
-        ld a,d
-.ok     push af
-        push de
+.ok     push de
         call clear_matched
         pop de
         ld h,board>>8
@@ -398,13 +488,19 @@ bomb_swap:
         ld (hl),#81             ; η ίδια η βόμβα: σκάει, έχει ήδη πυροδοτηθεί
         ld hl,nmatch
         inc (hl)
-        pop af
+        ld a,d
         cp BOMB
         jr z,.all
+        call special_kind
+        ld e,a                  ; E = είδος του άλλου (0 απλό)
+        ld a,d
         call mcol
-        ld d,a
+        ld d,a                  ; D = χρώμα
+        ld a,e
+        or a
+        call nz,convert_colour
         call mark_colour
-        jr .done
+        jp .done
 .all    ld c,0
 .al     ld a,c
         call hit_cell
@@ -414,4 +510,46 @@ bomb_swap:
         jr c,.al
 .done   call expand_specials
         scf
+        ret
+
+; Τα δύο κελιά της ανταλλαγής: σκάνε, και σημαδεύονται πυροδοτημένα.
+fire_both:
+        ld h,board>>8
+        ld a,(swap_a)
+        or matched&#FF
+        ld l,a
+        ld (hl),#81
+        ld a,(swap_b)
+        or matched&#FF
+        ld l,a
+        ld (hl),#81
+        ld hl,nmatch
+        inc (hl)
+        ret
+
+; D = χρώμα, E = είδος (1 ριγέ-οριζ., 2 ριγέ-κάθ., 3 περιτύλιγμα): κάθε candy
+; αυτού του χρώματος γίνεται αυτό το ειδικό (τα ριγέ με τυχαία φορά).
+convert_colour:
+        ld c,0
+.l      ld l,c
+        ld h,board>>8
+        ld a,(hl)
+        call mcol
+        cp d
+        jr nz,.n
+        ld a,e
+        cp 3
+        jr z,.form
+        call rand               ; ριγέ: οριζόντιο ή κάθετο στην τύχη
+        and 1
+        inc a
+.form   rlca
+        rlca
+        rlca
+        or d
+        ld (hl),a               ; φαίνεται στη λάμψη του CLEAR
+.n      inc c
+        ld a,c
+        cp COLS*ROWS
+        jr c,.l
         ret

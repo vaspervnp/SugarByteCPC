@@ -193,7 +193,7 @@ st_swap:
         jr z,.back
         ld a,1                  ; RESOLVE
         ld (chain),a
-        call bomb_swap
+        call combo_swap
         jr c,.valid
         call find_matches
         jr z,.invalid
