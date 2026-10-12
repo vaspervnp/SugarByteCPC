@@ -15,7 +15,7 @@ MENU_TILES      equ 6               ; πιάτο: αριστερό, 4 μέσης
 MENU_XB         equ 24              ; byte του πιάτου (pixel 48)
 MENU_PLATE_WB   equ MENU_TILES*MENU_W
 MENU_PTR_XB     equ MENU_XB-MENU_W-4    ; ο δείκτης (pixel 24)
-MENU_CANDY_Y    equ MENU_Y0+MENU_ITEMS*MENU_STEP+4
+MENU_CANDY_Y    equ FOOT_Y-CELL_H-2 ; πάνω από το πόδι: εκεί οι ρίγες κινούνται με raster
 MI_PLAY         equ 0
 MI_LEVELS       equ 1
 MI_SOUND        equ 2

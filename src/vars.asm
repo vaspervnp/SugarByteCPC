@@ -86,7 +86,10 @@ menu_sel        defs 1          ; η επιλογή του μενού
 best            defs 4*32       ; ανά πίστα: πόντοι BCD (3), αστέρια (1)
 snd_start
 psg_shadow      defs 11         ; οι καταχωρητές 0-10 του AY
-int_div         defs 1          ; 6 διακοπές = ένα καρέ
+int_zone        defs 1          ; ποια από τις 6 διακοπές του καρέ (0 = στο VSYNC)
+raster_t        defs 1          ; καρέ, για τον ρυθμό των raster
+raster_rot      defs 1          ; ο κύκλος των χρωμάτων του τίτλου, 0-5
+foot_phase      defs 1          ; οι ρίγες του ποδιού: 0 κανονικά, 1 ανάποδα
 mus_on          defs 1
 mus_ptr         defs 2
 mus_wait        defs 1

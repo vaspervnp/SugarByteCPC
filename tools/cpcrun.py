@@ -48,6 +48,7 @@ FRAME_T = 79872         # 19968 us/frame at 4 T-states/us (ignores CPC wait-stat
 VSYNC_T = 2048          # 8 scanlines
 SLICE_T = 64
 INT_T = FRAME_T // 6     # Gate Array: διακοπή κάθε 52 γραμμές, 300 Hz
+INT_OFS = 2 * 256        # η πρώτη 2 γραμμές μετά την αρχή του VSYNC, όπως στον CPC
 
 KEYS = {
     'up': (0, 0), 'right': (0, 1), 'down': (0, 2), 'left': (1, 0),
@@ -105,6 +106,9 @@ class CPC:
         self.wait_vbl = syms.get('WAIT_VBL')
         self.vsync_start_t = None
         self.last_vsync_read = 1
+        self.ink_log = []       # (T μέσα στο καρέ, pen, χρώμα) — για τα raster
+        self.frame_inks = list(self.inks)
+        self.last_frame = (list(self.inks), [])
         self.int_pending = False
         self.ints = 0           # διακοπές που δέχτηκε ο Z80
         self.m.set_output_callback(self.on_out)
@@ -122,6 +126,8 @@ class CPC:
                 self.pen = 16 if val & 0x10 else val & 0x0F
             elif f == 1:
                 self.inks[self.pen] = val & 0x1F
+                self.ink_log.append(((self.t + SLICE_T - self.m.ticks_to_stop) % FRAME_T,
+                                     self.pen, val & 0x1F))
             elif f == 2:
                 self.mode = val & 3
         if not addr & 0x4000:                                # CRTC
@@ -180,7 +186,10 @@ class CPC:
             events = self.m.run()
             t0 = self.t
             self.t += SLICE_T - self.m.ticks_to_stop
-            if self.t // INT_T != t0 // INT_T:
+            if self.t // FRAME_T != t0 // FRAME_T:     # νέο καρέ: κράτα τα inks του
+                self.last_frame = (self.frame_inks, self.ink_log)
+                self.frame_inks, self.ink_log = list(self.inks), []
+            if (self.t - INT_OFS) // INT_T != (t0 - INT_OFS) // INT_T:
                 self.int_pending = True     # ο Gate Array την κρατάει ώσπου να γίνει δεκτή
             # όχι πάνω στο breakpoint του wait_vbl: η επιστροφή θα το μετρούσε δεύτερη φορά
             if self.int_pending and self.m.pc != self.wait_vbl \
@@ -223,6 +232,16 @@ class CPC:
         r6 = self.crtc[6] or 25
         start = ((self.crtc[12] & 0x3F) << 8) | self.crtc[13]
         w, h = r1 * 2, r6 * 8
+        # Τα inks κάθε γραμμής, όπως τα άφησαν τα raster στο τελευταίο ολόκληρο
+        # καρέ: η γραμμή y σαρώνεται (R4+1-R7)*8 + y γραμμές μετά το VSYNC.
+        top = ((self.crtc[4] or 38) + 1 - (self.crtc[7] or 30)) * 8
+        inks, log = list(self.last_frame[0]), self.last_frame[1]
+        line_inks, k = [], 0
+        for y in range(h):
+            while k < len(log) and log[k][0] < (top + y) * 256:
+                inks[log[k][1]] = log[k][2]
+                k += 1
+            line_inks.append(list(inks))
         img = Image.new('RGB', (w * 8, h * 2))
         px = img.load()
         mem = self.m.memory
@@ -238,7 +257,7 @@ class CPC:
                     pens = [((b >> (7 - n)) & 1) | (((b >> (3 - n)) & 1) << 1) for n in range(4)]
                 pw = 8 // len(pens)
                 for n, pen in enumerate(pens):
-                    rgb = HW_RGB[self.inks[pen]]
+                    rgb = HW_RGB[line_inks[y][pen]]
                     for dx in range(pw):
                         for dy in (0, 1):
                             px[xb * 8 + n * pw + dx, y * 2 + dy] = rgb

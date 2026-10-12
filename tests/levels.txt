@@ -12,6 +12,7 @@ shot level1
 setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
 poke lv_goal 0
 poke score+1 #30
+poke moves 1               ; καμία κίνηση δεν περισσεύει: χωρίς Sugar Crush
 run 20
 poke cursor 50
 run 1 fire
@@ -37,6 +38,7 @@ setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
 setcells ........ ........ ........ ........ ........ ........ ........ jjj.....
 poke lv_goal 1
 poke score+1 #75
+poke moves 1
 run 20
 poke cursor 50
 run 1 fire

@@ -101,6 +101,8 @@ S_WIN          equ 7
 S_CODE         equ 8
 S_MENU         equ 9
 S_SCORES       equ 10
+S_CRUSH        equ 11
+CRUSH_FRAMES   equ 5            ; καρέ ανά κίνηση που γίνεται ριγέ
 MAX_BEAMS       equ 16
 BIG_CLEAR       equ 24          ; πάνω από τόσα κελιά: σκάσιμο σε 2 φάσεις, όχι 4
 

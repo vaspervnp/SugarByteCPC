@@ -1,0 +1,26 @@
+; Sugar Crush: ο στόχος επιτεύχθηκε με κινήσεις που περίσσεψαν. Κάθε κίνηση
+; γίνεται ριγέ, μετά σκάνε όλα μαζί, και μετά η νίκη.
+run 1
+until state 0 fire 100     ; από το μενού: PLAY
+run 20
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 01034501 00150123
+poke lv_goal 0
+poke score+1 #30
+poke moves 5
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 11 - 600
+expect moves #04
+shot crush_start
+until moves 0 - 100
+run 6
+shot crush_striped
+until state 7 - 900
+expect moves 0
+print score 3
+shot crush_win

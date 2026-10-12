@@ -175,49 +175,48 @@ blit_hud:
         jr .row
 
 ; HL = οθόνη, DE = πηγή (mask,data πλεγμένα), A = γραμμές. 6 bytes δεδομένων.
-; Διαβάζει την πηγή με POP: οι διακοπές είναι κλειστές σε όλο το παιχνίδι.
+; Χωρίς το κόλπο του POP: οι διακοπές μένουν ανοιχτές, γιατί τα raster του
+; raster.asm θέλουν τη διακοπή στη γραμμή της. 14 µs το byte αντί για 11.
 blit_masked:
-        di                      ; το SP δείχνει στα δεδομένα: καμία διακοπή εδώ
         ld ixl,a
-        ld (.sp+1),sp
-        ex de,hl
-        ld sp,hl
-        ex de,hl
-.row    ld d,h
-        ld e,l
+        ld b,h                  ; BC = η αρχή της γραμμής
+        ld c,l
+        ex de,hl                ; HL = πηγή
+.row    ld d,b
+        ld e,c
         repeat CELL_WB-1
-        pop bc                  ; C = μάσκα, B = δεδομένα
         ld a,(de)
-        and c
-        or b
+        and (hl)                ; μάσκα
+        inc hl
+        or (hl)                 ; δεδομένα
+        inc hl
         ld (de),a
         inc de
         rend
-        pop bc
         ld a,(de)
-        and c
-        or b
+        and (hl)
+        inc hl
+        or (hl)
+        inc hl
         ld (de),a
-        ld a,h                  ; επόμενη γραμμή (overscan, βλ. next_line_hl)
+        ld a,b                  ; επόμενη γραμμή (overscan, βλ. next_line_hl)
         add a,8
-        ld h,a
+        ld b,a
         and #38
         jr nz,.next
-        ld a,l
+        ld a,c
         add a,SCR_WB
-        ld l,a
-        ld a,h
+        ld c,a
+        ld a,b
         adc a,#C0
-        ld h,a
+        ld b,a
         and #38
         jr z,.next
-        ld a,h
+        ld a,b
         add a,#38
-        ld h,a
+        ld b,a
 .next   dec ixl
         jr nz,.row
-.sp     ld sp,0
-        ei
         ret
 
 ; A = γραμμή, B = γραμμές, C = πρώτο byte, D = πλάτος σε bytes, E = τιμή

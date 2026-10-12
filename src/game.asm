@@ -65,7 +65,7 @@ step_state:
 
 state_tab:
         dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam, st_win
-        dw st_code, st_menu, st_scores
+        dw st_code, st_menu, st_scores, st_crush
 
 ; ---------------------------------------------------------------------------
 ; IDLE: ο δείκτης κινείται και αναβοσβήνει, το SPACE επιλέγει και ανταλλάσσει.
@@ -573,7 +573,10 @@ resolve_fall:
         ld (state),a
         ld hl,sfx_over
         jp play_sfx
-.win    xor a
+.win    ld a,(moves)            ; κινήσεις περίσσεψαν: πρώτα το Sugar Crush
+        or a
+        jp nz,start_crush
+        xor a
         ld (anim_k),a
         ld a,S_WIN
         ld (state),a
@@ -632,3 +635,89 @@ st_over:
         out (c),a
         pop hl                  ; έξω από το step_state: καινούργιο παιχνίδι
         jp game_new
+
+; ---------------------------------------------------------------------------
+; SUGAR CRUSH: ο στόχος επιτεύχθηκε με κινήσεις που περίσσεψαν. Κάθε κίνηση
+; γίνεται ένα ριγέ σε τυχαίο απλό candy· μετά σκάνε όλα τα ειδικά του ταμπλού
+; μαζί, και οι αλυσίδες τους μετράνε κανονικά. Όταν το ταμπλό ησυχάσει, οι
+; κινήσεις είναι 0 και ακολουθεί η νίκη.
+start_crush:
+        xor a
+        ld (anim_k),a
+        ld a,S_CRUSH
+        ld (state),a
+        ld hl,sfx_win
+        jp play_sfx
+
+st_crush:
+        ld hl,anim_k
+        ld a,(hl)
+        inc (hl)
+        or a
+        ret z                   ; το πρώτο καρέ: μόνο η φανφάρα
+        cp CRUSH_FRAMES
+        ret c
+        ld (hl),1
+        ld a,(moves)
+        or a
+        jr z,crush_fire
+        sub 1
+        daa
+        ld (moves),a
+        ld a,1
+        ld (hud_dirty),a
+        call rand               ; ένα τυχαίο απλό candy γίνεται ριγέ
+        and 63
+        ld c,a
+        ld b,COLS*ROWS
+.find   ld l,c
+        ld h,board>>8
+        ld a,(hl)
+        cp 6                    ; απλό: χρώμα 0-5, καμία μορφή, όχι υλικό
+        jr c,.got
+        ld a,c
+        inc a
+        and 63
+        ld c,a
+        djnz .find
+        jr crush_fire           ; δεν έμεινε κανένα απλό
+.got    ld b,a
+        call rand
+        and 1
+        ld a,F_STRIPED_H
+        jr z,.h
+        ld a,F_STRIPED_V
+.h      or b
+        ld (hl),a
+        ld a,c
+        call mark_dirty
+        ld hl,sfx_select
+        jp play_sfx
+
+; Όλα τα ειδικά του ταμπλού σκάνε μαζί.
+crush_fire:
+        call clear_matched
+        ld a,1
+        ld (chain),a
+        ld c,0
+.cell   ld l,c
+        ld h,board>>8
+        ld a,(hl)
+        call special_kind
+        jr z,.next
+        set 6,l
+        ld (hl),1
+        ld hl,nmatch
+        inc (hl)
+.next   inc c
+        ld a,c
+        cp COLS*ROWS
+        jr c,.cell
+        ld a,(nmatch)
+        or a
+        jr z,.done
+        call expand_specials
+        call mark_blocker_damage
+        jp start_clear
+.done   jp resolve_fall         ; τίποτα να σκάσει: κατευθείαν στη νίκη
+

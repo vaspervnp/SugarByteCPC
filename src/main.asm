@@ -35,6 +35,7 @@ start:
         include "cells.asm"
         include "ingred.asm"
         include "sound.asm"
+        include "raster.asm"
         include "level.asm"
         include "codes.asm"
         include "menu.asm"

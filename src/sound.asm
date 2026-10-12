@@ -279,28 +279,8 @@ snd_init:
         ld a,1
         ld (mus_wait),a
         ld (mus_on),a
-        ld a,6
-        ld (int_div),a
         ld a,#38
         ld (psg_shadow+7),a
-        ret
-
-; IM 1, 300 Hz. Ο ήχος μία φορά στις έξι.
-int_handler:
-        push af
-        push bc
-        push de
-        push hl
-        ld hl,int_div
-        dec (hl)
-        jr nz,.out
-        ld (hl),6
-        call sound_tick
-.out    pop hl
-        pop de
-        pop bc
-        pop af
-        ei
         ret
 
 sound_tick:
