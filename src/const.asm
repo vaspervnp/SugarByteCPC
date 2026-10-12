@@ -49,7 +49,7 @@ PB_GREY_BLUE    equ #4C         ; pen 2 αριστερά, pen 3 δεξιά
 ; --- ο χρόνος ----------------------------------------------------------------
 DRAW_BUDGET     equ 4           ; βρώμικα κελιά το καρέ (ένα κελί με δείκτη ≈ 5 ms)
 SWAP_FRAMES     equ 6           ; 1 byte ή 4 γραμμές το καρέ
-FALL_STEPS      equ 3           ; ένα κελί πτώσης σε 3 βήματα των 8 γραμμών
+FALL_STEPS      equ 2           ; ένα κελί πτώσης σε 2 βήματα των 12 γραμμών
 FALL_STEP_Y     equ CELL_H/FALL_STEPS
 REP_FIRST       equ 12          ; repeat του δείκτη: πρώτη επανάληψη
 REP_NEXT        equ 3           ; ... και μετά
@@ -69,6 +69,9 @@ S_UNSWAP       equ 2
 S_CLEAR        equ 3
 S_FALL         equ 4
 S_OVER         equ 5
+S_BEAM         equ 6
+MAX_BEAMS       equ 16
+BIG_CLEAR       equ 24          ; πάνω από τόσα κελιά: σκάσιμο σε 2 φάσεις, όχι 4
 
 ; --- η μνήμη -----------------------------------------------------------------
 CODE_ORG        equ #0100

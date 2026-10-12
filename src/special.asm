@@ -280,6 +280,7 @@ cell_row:
 hit_row:
         cp ROWS
         ret nc
+        call add_beam
         add a,a
         add a,a
         add a,a
@@ -295,6 +296,9 @@ hit_row:
 hit_col:
         cp COLS
         ret nc
+        or #80
+        call add_beam
+        and 7
         ld b,ROWS
 .l      push af
         call hit_cell
@@ -560,4 +564,47 @@ convert_colour:
         ld a,c
         cp COLS*ROWS
         jr c,.l
+        ret
+
+; A = γραμμή (< 8) ή κολόνα | #80: η δέσμη θα ζωγραφιστεί. Δεν πειράζει τίποτα.
+add_beam:
+        push hl
+        push af
+        ld a,(nbeams)
+        cp MAX_BEAMS
+        jr nc,.full
+        inc a
+        ld (nbeams),a
+        dec a
+        ld hl,beams
+        call add_hl_a
+        pop af
+        ld (hl),a
+        pop hl
+        ret
+.full   pop af
+        pop hl
+        ret
+
+; C = κελί, D = καρέ σκασίματος, pop_ph = φάση 1-3: αν εδώ γεννιέται ειδικό,
+; D = αστέρι (μικρό, μεγάλο, μικρό). Δεν πειράζει BC.
+spawn_star:
+        ld a,(nspawn)
+        or a
+        ret z
+        ld e,a
+        ld hl,spawns
+.l      ld a,(hl)
+        cp c
+        jr z,.star
+        inc hl
+        inc hl
+        dec e
+        jr nz,.l
+        ret
+.star   ld a,(pop_ph)
+        and 1
+        xor 1
+        add a,OVERLAY_STAR
+        ld d,a
         ret

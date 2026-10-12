@@ -147,6 +147,7 @@ clear_matched:
         ld (nmatch),a
         ld (nruns),a
         ld (nspawn),a
+        ld (nbeams),a
         ret
 
 ; HL = πρώτο κελί, C = βήμα (1 γραμμή, 8 κολόνα). Σαρώνει 8 κελιά.
@@ -475,11 +476,13 @@ fall_scan:
 
 ; A = βήμα 1..FALL_STEPS: ζωγραφίζει τα τμήματα που πέφτουν.
 fall_draw:
-        assert FALL_STEP_Y == 8
+        assert FALL_STEP_Y == 12
         add a,a
         add a,a
+        ld b,a
         add a,a
-        ld (fall_y),a           ; πόσες γραμμές έχουν πέσει
+        add a,b
+        ld (fall_y),a           ; πόσες γραμμές έχουν πέσει: βήμα * 12
         ld c,0
 .col    ld hl,gap
         ld a,c
@@ -504,10 +507,16 @@ fall_draw:
         ld (fall_c0),a
         push bc
         push de
-.bg     push af                 ; τα φόντα του τμήματος, μαζί με το κενό
+.bg     push af                 ; τα φόντα όπου περνάει candy
+        push bc
+        call fall_needs_bg
+        jr z,.nobg
+        pop bc
+        pop af
+        push af
         push bc
         call draw_bg
-        pop bc
+.nobg   pop bc
         pop af
         add a,COLS
         dec b
@@ -557,6 +566,28 @@ fall_draw:
         ld a,c
         cp COLS
         jp c,.col
+        ret
+
+; A = κελί του τμήματος που πέφτει -> NZ αν θέλει φόντο: έχει candy, ή μπαίνει
+; σε αυτό το candy από πάνω, ή είναι η κορυφή και μπαίνει καινούργιο.
+fall_needs_bg:
+        ld l,a
+        ld h,board>>8
+        ld a,(hl)
+        cp EMPTY
+        ret nz
+        ld a,(fall_c0)
+        cp l
+        jr z,.top
+        ld a,l
+        sub COLS
+        ld l,a
+        ld a,(hl)
+        cp EMPTY
+        ret
+.top    ld a,l
+        cp COLS
+        sbc a,a                 ; #FF (NZ) αν είναι η γραμμή 0
         ret
 
 ; Κάθε τμήμα που πέφτει κατεβαίνει μία θέση.

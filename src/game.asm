@@ -61,7 +61,7 @@ step_state:
         jp (hl)
 
 state_tab:
-        dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over
+        dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam
 
 ; ---------------------------------------------------------------------------
 ; IDLE: ο δείκτης κινείται και αναβοσβήνει, το SPACE επιλέγει και ανταλλάσσει.
@@ -294,11 +294,122 @@ swap_draw:
 
 ; ---------------------------------------------------------------------------
 ; CLEAR: τα σημαδεμένα σκάνε σε 4 φάσεις των 2 καρέ, μετά αδειάζουν.
+; Πρώτα οι δέσμες των ριγέ, αν υπάρχουν, μετά το σκάσιμο.
 start_clear:
         xor a
         ld (anim_k),a
+        ld hl,matched           ; πόσα σκάνε
+        ld b,COLS*ROWS
+        ld c,a
+.count  ld a,(hl)
+        or a
+        jr z,.nc
+        inc c
+.nc     inc l
+        djnz .count
+        ld a,c
+        ld (clear_n),a
+        ld a,(nbeams)
+        or a
+        ld a,S_CLEAR
+        jr z,.set
+        ld a,S_BEAM
+.set    ld (state),a
+        ret
+
+; BEAM: η δέσμη πάνω από τη γραμμή/κολόνα, χοντρή και μετά λεπτή, 2 καρέ η
+; καθεμία· μετά ό,τι δεν σκάει κάτω από τη δέσμη (υλικά) ξαναζωγραφίζεται.
+st_beam:
+        ld hl,anim_k
+        ld a,(hl)
+        inc (hl)
+        cp 4
+        jr z,.restore
+        bit 0,a
+        ret nz
+        rrca
+        and 1
+        ld (pop_ph),a
+        ld e,0
+.beam   ld a,(nbeams)
+        cp e
+        ret z
+        ld hl,beams
+        ld a,e
+        call add_hl_a
+        ld a,(hl)
+        push de
+        call beam_cells
+        ld a,e
+        ld (beam_step),a
+        ld a,(pop_ph)
+        add a,d
+        ld (beam_fr),a
+.cell   push bc
+        ld a,(beam_fr)
+        ld d,a
+        ld a,c
+        call draw_overlay
+        pop bc
+        ld a,(beam_step)
+        add a,c
+        ld c,a
+        djnz .cell
+        pop de
+        inc e
+        jr .beam
+.restore
+        ld e,0
+.rbeam  ld a,(nbeams)
+        cp e
+        jr z,.done
+        ld hl,beams
+        ld a,e
+        call add_hl_a
+        ld a,(hl)
+        push de
+        call beam_cells
+        ld a,e
+        ld (beam_step),a
+.rcell  push bc
+        ld h,matched>>8
+        ld a,c
+        or matched&#FF
+        ld l,a
+        ld a,(hl)
+        or a
+        ld a,c
+        call z,draw_cell
+        pop bc
+        ld a,(beam_step)
+        add a,c
+        ld c,a
+        djnz .rcell
+        pop de
+        inc e
+        jr .rbeam
+.done   xor a
+        ld (anim_k),a
         ld a,S_CLEAR
         ld (state),a
+        ret
+
+; A = δέσμη -> C = πρώτο κελί, E = βήμα, B = 8, D = καρέ επικάλυψης (πάχος 0)
+beam_cells:
+        ld b,8
+        bit 7,a
+        jr nz,.vert
+        add a,a
+        add a,a
+        add a,a
+        ld c,a
+        ld e,1
+        ld d,OVERLAY_BEAM_H
+        ret
+.vert   and 7
+        ld c,a
+        ld e,COLS
+        ld d,OVERLAY_BEAM_V
         ret
 
 st_clear:
@@ -312,7 +423,13 @@ st_clear:
         rrca
         and 3
         ld (pop_ph),a
-        ld c,0
+        jr z,.go                ; πολλά μαζί: μόνο λάμψη και σκόνη
+        cp 3
+        jr z,.go
+        ld a,(clear_n)
+        cp BIG_CLEAR
+        ret nc
+.go     ld c,0
 .cell   ld h,matched>>8
         ld a,c
         or matched&#FF
@@ -336,6 +453,9 @@ st_clear:
         ld a,(pop_ph)
         add a,OVERLAY_POP
         ld d,a
+        ld a,(pop_ph)           ; εκεί που γεννιέται ειδικό: αστέρι
+        or a
+        call nz,spawn_star
         ld a,c
         call draw_overlay
         pop bc

@@ -1,0 +1,53 @@
+; Τα animations (plan.md §14 βήμα 13): δέσμες των ριγέ, αστέρι στη γέννηση.
+run 20
+
+; ριγέ σε τριάδα: πρώτα η δέσμη στη γραμμή του, μετά το σκάσιμο
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 A041k123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 6 - 60
+expect nbeams 1
+expect beams 7
+run 1
+shot anim_beam
+until state 3 - 20
+; το υλικό κάτω από τη δέσμη ξαναζωγραφίστηκε και δεν σκάει
+expect matched+60 0
+until state 0 - 600
+
+; ριγέ + ριγέ: δύο δέσμες, γραμμή 3 και κολόνα 4
+setboard 01234404 23450123 45012345 012De501 23450123 45012345 41054501 00150123
+run 20
+poke cursor 27
+run 1 fire
+run 1
+run 1 right
+run 1
+run 1 fire
+until state 6 - 60
+expect nbeams 2
+expect beams 3
+expect beams+1 #84
+run 3
+shot anim_beam2
+until state 0 - 600
+
+; 4 στη σειρά: αστέρι εκεί που γεννιέται το ριγέ
+setboard 01234404 23450123 45012345 01234501 23450123 45012345 41054501 00405123
+run 20
+poke cursor 50
+run 1 fire
+run 1
+run 1 down
+run 1
+run 1 fire
+until state 3 - 60
+expect nspawn 1
+run 3
+shot anim_star
+until state 0 - 600

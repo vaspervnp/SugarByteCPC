@@ -57,7 +57,11 @@ collect_ingredients:
         pop hl
         push hl
         ld a,l
+        push af
         call draw_bg
+        pop af
+        ld d,OVERLAY_STAR+1     ; αστέρι ώσπου να το σκεπάσει η πτώση
+        call draw_overlay
         pop hl
         pop bc
 .next   inc l

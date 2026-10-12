@@ -52,6 +52,11 @@ runs            defs 3*MAX_RUNS ; πρώτο κελί, μήκος, βήμα
 nspawn          defs 1
 spawns          defs 2*MAX_SPAWN ; κελί, τιμή board[] του ειδικού που γεννιέται
 sp_changed      defs 1
+nbeams          defs 1
+beams           defs MAX_BEAMS  ; γραμμή 0-7, ή κολόνα | #80
+clear_n         defs 1          ; πόσα κελιά σκάνε
+beam_fr         defs 1
+beam_step       defs 1
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
 fall_y          defs 1
