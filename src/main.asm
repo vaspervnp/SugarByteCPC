@@ -37,6 +37,7 @@ start:
         include "ingred.asm"
         include "sound.asm"
         include "level.asm"
+        include "codes.asm"
         include "../build/levels.asm"
 NLEVELS_BCD     equ (NLEVELS/10)*16+NLEVELS-(NLEVELS/10)*10
         include "game.asm"

@@ -64,10 +64,14 @@ step_state:
 
 state_tab:
         dw st_idle, st_swap, st_swap, st_clear, st_fall, st_over, st_beam, st_win
+        dw st_code
 
 ; ---------------------------------------------------------------------------
 ; IDLE: ο δείκτης κινείται και αναβοσβήνει, το SPACE επιλέγει και ανταλλάσσει.
 st_idle:
+        ld a,(joy_edge)
+        and J_ESC
+        jp nz,start_code
         ld hl,blink_t
         inc (hl)
         ld a,(hl)
@@ -573,12 +577,21 @@ resolve_fall:
         ld a,S_WIN
         ld (state),a
         call draw_win_stars
+        ld a,(cur_level)        ; ο κωδικός της επόμενης πίστας
+        inc a
+        cp NLEVELS
+        jr c,.code
+        xor a
+.code   call hud_show_code
         ld hl,sfx_win
         jp play_sfx
 
 ; ---------------------------------------------------------------------------
 ; WIN: ο στόχος επιτεύχθηκε. Τα αστέρια στο ταμπλό· SPACE = η επόμενη πίστα.
 st_win:
+        ld a,(joy_edge)
+        and J_ESC
+        jp nz,start_code
         ld a,(joy_edge)
         and J_FIRE
         ret z
@@ -605,6 +618,12 @@ st_over:
         out (c),c
         out (c),a
         ld a,(joy_edge)
+        and J_ESC
+        jr z,.noesc
+        ld a,#54                ; περίγραμμα μαύρο όσο γράφεται ο κωδικός
+        out (c),a
+        jp start_code
+.noesc  ld a,(joy_edge)
         and J_FIRE
         ret z
         ld a,#54

@@ -66,6 +66,7 @@ J_LEFT          equ 4
 J_RIGHT         equ 8
 J_FIRE          equ 16
 J_MUSIC         equ 32
+J_ESC           equ 64
 
 ; --- οι καταστάσεις (plan.md §7) ---------------------------------------------
 S_IDLE         equ 0
@@ -76,6 +77,7 @@ S_FALL         equ 4
 S_OVER         equ 5
 S_BEAM         equ 6
 S_WIN          equ 7
+S_CODE         equ 8
 MAX_BEAMS       equ 16
 BIG_CLEAR       equ 24          ; πάνω από τόσα κελιά: σκάσιμο σε 2 φάσεις, όχι 4
 

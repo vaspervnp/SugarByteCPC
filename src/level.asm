@@ -173,6 +173,8 @@ hud_level_init:
         ld b,1
         call draw_bcd
 
+        ld a,(cur_level)
+        call hud_show_code
         ld a,(lv_goal)          ; τα εικονίδια των στόχων
         or a
         jr nz,.notscore

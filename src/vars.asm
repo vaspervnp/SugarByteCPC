@@ -68,6 +68,9 @@ lv_star2        defs 2
 lv_star3        defs 2
 lv_number       defs 1
 win_n           defs 1
+code_dig        defs 4          ; ο κωδικός που γράφεται, ένα ψηφίο το byte
+code_pos        defs 1
+code_prev       defs 1          ; η κατάσταση πριν το ESC
 boom            defs 1          ; έσκασε περιτύλιγμα σε αυτό το RESOLVE
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1

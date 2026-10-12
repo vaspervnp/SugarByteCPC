@@ -12,8 +12,12 @@
     8-9   πόντοι για 3 αστέρια
     ...   ζεύγη (πλήθος, cell[]) ώσπου να καλυφθούν 64 κελιά
 
+Και οι κωδικοί των πιστών (level_codes, 2 bytes BCD η καθεμία, MSB πρώτο):
+4 ψηφία από hash του αριθμού της πίστας, όλοι διαφορετικοί, κανένας 0000.
+
   levels.py levels/levels.txt build/levels.asm
 """
+import hashlib
 import sys
 
 GOALS = {'score': 0, 'jelly': 1, 'ingredients': 2, 'jelly+ingredients': 3}
@@ -108,6 +112,19 @@ def encode(lv):
     return head + rle
 
 
+def level_codes(n):
+    codes, salt = [], 0
+    for i in range(n):
+        while True:
+            h = hashlib.sha1(f"sugarbyte/{i + 1}/{salt}".encode()).digest()
+            c = int.from_bytes(h[:4], 'big') % 10000
+            salt += 1
+            if c and c not in codes:
+                break
+        codes.append(c)
+    return codes
+
+
 def main():
     src, dst = sys.argv[1], sys.argv[2]
     levels = parse(src)
@@ -122,6 +139,10 @@ def main():
         out.append(f"level_{i + 1}:                ; {len(data)} bytes")
         for k in range(0, len(data), 16):
             out.append('        db ' + ','.join(f"#{b:02X}" for b in data[k:k + 16]))
+    out.append('')
+    out.append('level_codes:            ; ο κωδικός κάθε πίστας, 4 ψηφία BCD')
+    for i, c in enumerate(level_codes(len(levels))):
+        out.append(f"        db #{c // 100:02d},#{c % 100:02d}    ; πίστα {i + 1}: {c:04d}")
     open(dst, 'w').write('\n'.join(out) + '\n')
     print(f"{dst}: {len(levels)} πίστες, {total} bytes")
 
