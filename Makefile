@@ -49,6 +49,16 @@ docs/manual-en.pdf: manual.md $(SHOTS) tools/mkmanual.py
 docs/manual-el.pdf: manual.el.md $(SHOTS) tools/mkmanual.py
 	$(PY) tools/mkmanual.py $< $@
 
+# Windows: ένα .exe με το παιχνίδι και τον Caprice32 μέσα, και ένα zip για διανομή με
+# τα εγχειρίδια (build/win/). Τρέχει από το WSL: το launcher το χτίζει ο csc.exe των Windows.
+windows: $(B)/sugar.dsk docs/manual-en.pdf docs/manual-el.pdf
+	tools/mkwin.sh
+
+# Linux: το ίδιο, ένα αρχείο (σενάριο + tar.gz) με τον Caprice32 του snap και τις
+# βιβλιοθήκες του, και ένα tar.gz για διανομή (build/linux/). Θέλει το snap caprice32.
+linux: $(B)/sugar.dsk docs/manual-en.pdf docs/manual-el.pdf
+	tools/mklinux.sh
+
 # Headless σενάρια (tests/*.txt) στο tools/cpcrun.py· screenshots στο build/shots/.
 test: $(B)/sugar.bin
 	@set -e; for t in tests/*.txt; do \
@@ -63,4 +73,4 @@ boot: $(B)/sugar.dsk
 clean:
 	rm -rf $(B)
 
-.PHONY: all test boot manuals clean
+.PHONY: all test boot manuals windows linux clean

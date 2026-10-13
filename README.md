@@ -73,6 +73,8 @@ AY**: «Sugar Byte!» στην εκκίνηση, «Sweet!» και «Delicious!�
 ```bash
 make            # build/sugar.dsk — RUN"SUGAR, και build/sugar.cdt — RUN""
 make manuals    # docs/manual-en.pdf, docs/manual-el.pdf (θέλει το fpdf2)
+make windows    # build/win/SugarByte.exe και SugarByte-win64.zip: το παιχνίδι με τον Caprice32
+make linux      # build/linux/SugarByte και SugarByte-linux-x64.tar.gz: το ίδιο για Linux
 make test       # τα σενάρια του tests/, headless
 make boot       # η δισκέτα σε εξομοιωτή 6128 (θέλει το ../CPCTools/cpcemu)
 ```
@@ -81,6 +83,22 @@ make boot       # η δισκέτα σε εξομοιωτή 6128 (θέλει τ�
 που δείχνει την οθόνη REVIVE8BIT (`assets/revive8b.scr`) για 10 δευτερόλεπτα —
 ή ώς το SPACE — και μετά φορτώνει το `SUGAR.BIN`. Η κασέτα (`build/sugar.cdt`,
 από το `tools/mkcdt.py`) έχει μόνο το `SUGAR.BIN`, χωρίς την οθόνη: `RUN""`.
+
+Για Windows, το `make windows` (από το WSL) φτιάχνει το `build/win/SugarByte.exe`: ένα
+αρχείο με μέσα τον Caprice32, τα ROMs του και τη δισκέτα. Με διπλό κλικ ξεπακετάρεται
+στο `%LOCALAPPDATA%\SugarByte` (χωρίς εγκατάσταση), ανοίγει ο Caprice32 και γράφει
+`RUN"SUGAR`. Το `SugarByte-win64.zip` έχει το exe, τα εγχειρίδια, ένα README και τις
+άδειες (ο Caprice32 είναι GPLv2). Το launcher (`tools/windows/Launcher.cs`) το χτίζει
+ο `csc.exe` των Windows· όλα από το BuildDangerousCPC.
+
+Για Linux, το `make linux` φτιάχνει το ίδιο: το `build/linux/SugarByte` είναι ένα
+σενάριο με ένα tar.gz από πίσω του (Caprice32, βιβλιοθήκες, ROMs, δισκέτα), που
+ξεπακετάρεται στο `~/.local/share/SugarByte` και ανοίγει τον Caprice32 με `RUN"SUGAR`.
+Ο Caprice32 δεν έχει δική του έκδοση για Linux· το `tools/mklinux.sh` παίρνει το
+4.6.0 από το snap `caprice32` (χτισμένο στο core24) με τις βιβλιοθήκες που μπορεί να
+λείπουν από ένα desktop, άρα θέλει glibc 2.38+ (Ubuntu 24.04, Debian 13, Fedora 39 ή
+νεότερα). Το `SugarByte-linux-x64.tar.gz` έχει το αρχείο, τα εγχειρίδια, ένα README και
+τις άδειες όλων.
 
 Χειρισμός: βελάκια ή joystick, SPACE / fire για επιλογή και ανταλλαγή, M για
 μουσική ναι/όχι, ESC πίσω στο μενού. Στο μενού, LEVEL → κωδικός: ←→ ψηφίο, ↑↓
