@@ -12,6 +12,7 @@ HUD_RULE1_Y     equ HUD_Y+48
 HUD_GOAL_Y      equ HUD_Y+58            ; στόχοι: θέσεις των 30 γραμμών
 HUD_GOAL_DY     equ 30
 HUD_LEVEL_Y     equ HUD_GOAL_Y+2*HUD_GOAL_DY+8
+HUD_MODE_Y      equ HUD_LEVEL_Y+12          ; EASY / MEDIUM / HARD, κάτω από το LEVEL
 HUD_RULE2_Y     equ HUD_Y+150
 HUD_STARS_Y     equ HUD_Y+158
 HUD_BAR_Y       equ HUD_Y+178
@@ -293,7 +294,7 @@ bcd4_bin:
 
 ; ---------------------------------------------------------------------------
 ; Οι στόχοι της πίστας: ένα εικονίδιο ή candy και «× NN» ή ο στόχος πόντων.
-; Κάτω τους, «LEVEL NN».
+; Κάτω τους, «LEVEL NN» και η δυσκολία.
 hud_goals_init:
         ld a,(lv_goal)
         or a
@@ -357,7 +358,13 @@ hud_goals_init:
         ld (lv_number),a
         ld hl,lv_number
         ld b,1
-        jp draw_bcd
+        call draw_bcd
+        ld a,HUD_MODE_Y         ; EASY / MEDIUM / HARD
+        ld (digit_y),a
+        call difficulty_name
+        ld c,HUD_XB+4
+        jp draw_text
+        assert HUD_MODE_Y+8 <= HUD_RULE2_Y
 
 txt_level:
         db "LEVEL",0

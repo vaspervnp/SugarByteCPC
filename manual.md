@@ -134,7 +134,7 @@ From top to bottom:
 - **The arrows** — moves left. **The padlock** — this level's code.
 - **The goal** — what you need to do to win the level: points to reach, jelly
   squares left to clear, ingredients left to bring down.
-- **LEVEL NN** — the level you're on.
+- **LEVEL NN** — the level you're on, and under it the difficulty: **EASY**, **MEDIUM** or **HARD**.
 - **Three stars** and the **progress bar** — they light up as your score
   passes each star's target.
 
