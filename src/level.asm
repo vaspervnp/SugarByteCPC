@@ -14,13 +14,51 @@ load_level:
         djnz .lv
         ld a,(lv_colours)
         ld (ncolours),a
-        ld a,(lv_moves)
+        call difficulty_moves
         ld (moves),a
         ld a,(lv_ingr)
         ld (ingr_left),a
         call bcd2bin
         ld (ingr_spawn),a
         ret
+
+; -> A = οι κινήσεις της πίστας (BCD) για τη δυσκολία: EASY όλες, MEDIUM ~80%
+; (m - m/4 + m/16), HARD ~65% (m/2 + m/8 + m/32), τουλάχιστον 5.
+difficulty_moves:
+        ld a,(lv_moves)
+        call bcd2bin
+        ld b,a
+        ld a,(difficulty)
+        ld c,a
+        ld a,b
+        dec c
+        jp m,.done              ; EASY
+        jr nz,.hard
+        srl a                   ; MEDIUM
+        srl a
+        ld c,a                  ; m/4
+        srl a
+        srl a                   ; m/16
+        add a,b
+        sub c
+        jr .min
+.hard   srl a
+        ld c,a                  ; m/2
+        srl a
+        srl a                   ; m/8
+        add a,c
+        ld c,a
+        ld a,b
+        srl a
+        srl a
+        srl a
+        srl a
+        srl a                   ; m/32
+        add a,c
+.min    cp 5
+        jr nc,.done
+        ld a,5
+.done   jp bin2bcd
 
 ; HL = πίστα (tools/levels.py) -> HL = η επόμενη.
 decode_level:

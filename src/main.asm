@@ -52,6 +52,12 @@ start:
         include "hudgfx.asm"
         include "game.asm"
         include "hud.asm"
+
+        ; Οι καλύτεροι πόντοι και αστέρια, ανά δυσκολία: 256 bytes η καθεμία, ώστε
+        ; δυσκολία = +H. Μηδενικά στο αρχείο: η πρόοδος μιας συνεδρίας.
+        align 256
+best:   defs 4*MAX_LEVELS*DIFFICULTIES  ; best_ptr: +H ανά δυσκολία
+        assert (best&#FF) == 0
 code_end:
         assert code_end <= SPRITES_ORG
 

@@ -72,7 +72,7 @@ code_dig        defs 4          ; ο κωδικός που γράφεται, έ�
 code_pos        defs 1
 menu_tmp        defs 1
 scores_pg       defs 1          ; η σελίδα του SCORES
-menu_buf        defs 12         ; η ετικέτα ενός πιάτου που αλλάζει
+menu_buf        defs 18         ; η ετικέτα ενός πιάτου που αλλάζει
 boom            defs 1          ; έσκασε περιτύλιγμα σε αυτό το RESOLVE
 dc_i            defs 1          ; προσωρινά των ρουτινών σχεδίασης
 pop_ph          defs 1
@@ -91,7 +91,7 @@ vars_end
 ; η διακοπή τρέχει.
 cur_level       defs 1          ; η πίστα, από 0 — δεν τη μηδενίζει το game_new
 menu_sel        defs 1          ; η επιλογή του μενού
-best            defs 4*MAX_LEVELS      ; ανά πίστα: πόντοι BCD (3), αστέρια (1)
+difficulty      defs 1          ; 0 EASY, 1 MEDIUM, 2 HARD — δεν τη μηδενίζει το game_new
 snd_start
 psg_shadow      defs 11         ; οι καταχωρητές 0-10 του AY
 int_zone        defs 1          ; ποια από τις 6 διακοπές του καρέ (0 = στο VSYNC)

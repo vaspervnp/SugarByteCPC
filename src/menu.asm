@@ -1,16 +1,17 @@
 ; menu.asm — το μενού, όπως το assets/preview/mockup_menu.png
 ;
-; Τίτλος και μπορντούρα (draw_frame), τέσσερα πιάτα, ο δείκτης αριστερά από το
+; Τίτλος και μπορντούρα (draw_frame), πέντε πιάτα, ο δείκτης αριστερά από το
 ; επιλεγμένο, μια σειρά από candies στο πόδι.
 ;
 ;   PLAY       η πίστα cur_level από την αρχή
 ;   LEVEL NN   SPACE: «CODE 0000» — ←→ ψηφίο, ↑↓ τιμή, SPACE δέχεται, ESC ακυρώνει
+;   MODE EASY  SPACE: EASY -> MEDIUM -> HARD (λιγότερες κινήσεις, level.asm)
 ;   SOUND ON   SPACE: μουσική ναι/όχι
 ;   SCORES     οι καλύτεροι πόντοι και τα αστέρια κάθε πίστας
 
-MENU_ITEMS      equ 4
-MENU_Y0         equ 48              ; γραμμή του πρώτου πιάτου
-MENU_STEP       equ 36
+MENU_ITEMS      equ 5
+MENU_Y0         equ 44              ; γραμμή του πρώτου πιάτου
+MENU_STEP       equ 28
 MENU_TILES      equ 6               ; πιάτο: αριστερό, 4 μέσης, δεξί
 MENU_XB         equ 24              ; byte του πιάτου (pixel 48)
 MENU_PLATE_WB   equ MENU_TILES*MENU_W
@@ -19,8 +20,9 @@ MENU_CANDY_Y    equ MENU_Y0+(MENU_ITEMS-1)*MENU_STEP+MENU_H+4
 MENU_CREDIT_Y   equ FOOT_Y-11       ; πάνω από το πόδι: εκεί οι ρίγες κινούνται με raster
 MI_PLAY         equ 0
 MI_LEVELS       equ 1
-MI_SOUND        equ 2
-MI_SCORES       equ 3
+MI_MODE         equ 2
+MI_SOUND        equ 3
+MI_SCORES       equ 4
 
 ; Η εκκίνηση: όλες οι μεταβλητές (και η μόνιμη πρόοδος) στο μηδέν, και το μενού.
 menu_start:
@@ -141,16 +143,16 @@ draw_plate:
 
 ; A = επιλογή -> A = η γραμμή του πιάτου της
 menu_item_y:
-        ld b,a                  ; * 36
+        add a,a                 ; * 28
+        add a,a
+        ld b,a                  ; * 4
         add a,a
         add a,a
-        add a,a
-        add a,b
-        add a,a
-        add a,a
+        add a,a                 ; * 32
+        sub b
         add a,MENU_Y0
         ret
-        assert MENU_STEP == 36
+        assert MENU_STEP == 28
 
 ; A = επιλογή -> HL = η ετικέτα της (στο menu_buf αν αλλάζει)
 menu_label:
@@ -160,8 +162,18 @@ menu_label:
         dec a
         jr z,.levels
         dec a
+        jr z,.mode
+        dec a
         jr z,.sound
         ld hl,txt_scores
+        ret
+.mode   ld hl,txt_mode          ; «MODE EASY»
+        ld de,menu_buf
+        ld bc,5
+        ldir
+        call difficulty_name
+        call copy_text
+        ld hl,menu_buf
         ret
 .sound  ld hl,txt_sound_on
         ld a,(mus_on)
@@ -231,9 +243,47 @@ put_bcd_digits:
 txt_play:       db "PLAY",0
 txt_level_nn:   db "LEVEL "
 txt_code:       db "CODE "
+txt_mode:       db "MODE "
 txt_sound_on:   db "SOUND ON",0
 txt_sound_off:  db "SOUND OFF",0
 txt_scores:     db "SCORES",0
+
+; -> HL = το όνομα της δυσκολίας
+difficulty_name:
+        ld a,(difficulty)
+        ld hl,txt_easy
+        or a
+        ret z
+        ld hl,txt_medium
+        dec a
+        ret z
+        ld hl,txt_hard
+        ret
+
+txt_easy:       db "EASY",0
+txt_medium:     db "MEDIUM",0
+txt_hard:       db "HARD",0
+
+; HL = κείμενο με 0 -> στο (DE), μαζί με το 0. DE μένει στο 0.
+copy_text:
+        ld a,(hl)
+        ld (de),a
+        or a
+        ret z
+        inc hl
+        inc de
+        jr copy_text
+
+; A = πίστα -> HL = τα best της (πόντοι BCD 3, αστέρια 1) στη δυσκολία που παίζει.
+best_ptr:
+        add a,a
+        add a,a
+        ld hl,best
+        call add_hl_a
+        ld a,(difficulty)
+        add a,h
+        ld h,a
+        ret
 
 ; Ο δείκτης δίπλα στο επιλεγμένο, στη φάση του (οι ρίγες «τρέχουν»).
 draw_pointer:
@@ -307,6 +357,19 @@ st_menu:
         jp start_code           ; LEVELS: ο κωδικός
 .notlevels
         dec a
+        jr nz,.notmode
+        ld a,(difficulty)       ; MODE: EASY -> MEDIUM -> HARD -> EASY
+        inc a
+        cp DIFFICULTIES
+        jr c,.mode
+        xor a
+.mode   ld (difficulty),a
+        ld hl,sfx_select
+        call play_sfx
+        ld a,MI_MODE
+        jp draw_plate
+.notmode
+        dec a
         jr nz,scores_enter      ; SCORES
         call toggle_music       ; SOUND
         ld a,MI_SOUND
@@ -332,10 +395,15 @@ scores_draw:
         ld de,(SCR_WB-2*BORDER_XB)*256+PB_BLACK
         call fill_rect
         call draw_frame         ; καθαρό πόδι, χωρίς τα candies του μενού
-        ld hl,txt_scores        ; «SCORES 1/3»
+        ld hl,txt_scores        ; «SCORES MEDIUM 1/3»
         ld de,menu_buf
         ld bc,6
         ldir
+        ld a,' '
+        ld (de),a
+        inc de
+        call difficulty_name
+        call copy_text
         ex de,hl
         ld (hl),' '
         inc hl
@@ -350,8 +418,20 @@ scores_draw:
         ld (hl),0
         ld a,BOARD_Y+4
         ld (digit_y),a
+        ld hl,menu_buf          ; στο κέντρο
+        ld b,0
+.tlen   ld a,(hl)
+        or a
+        jr z,.tend
+        inc hl
+        inc b
+        jr .tlen
+.tend   ld a,SCR_WB
+        sub b
+        sub b
+        srl a
+        ld c,a
         ld hl,menu_buf
-        ld c,(SCR_WB-10*2)/2
         call draw_text
         call .first             ; A = η πρώτη πίστα της σελίδας
 .lv     ld (menu_tmp),a
@@ -383,10 +463,7 @@ scores_draw:
         inc c
         inc c
         ld a,(menu_tmp)         ; οι πόντοι
-        add a,a
-        add a,a
-        ld hl,best
-        call add_hl_a
+        call best_ptr
         ld b,3
         call draw_bcd           ; HL μένει στα αστέρια
         ld e,(hl)               ; τα αστέρια, μικρά
@@ -447,10 +524,7 @@ st_scores:
 ; Στη νίκη: οι πόντοι και τα αστέρια της πίστας, αν είναι οι καλύτεροι ώς τώρα.
 record_best:
         ld a,(cur_level)
-        add a,a
-        add a,a
-        ld hl,best
-        call add_hl_a
+        call best_ptr
         push hl
         ld de,score             ; BCD, MSB πρώτο: σύγκριση byte-byte
         ld b,3

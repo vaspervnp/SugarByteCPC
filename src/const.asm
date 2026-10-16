@@ -32,7 +32,8 @@ F_STRIPED_H     equ 1<<3        ; board[] bits 3-4: η μορφή
 F_STRIPED_V     equ 2<<3
 F_WRAPPED       equ 3<<3
 MAX_RUNS        equ 24
-MAX_LEVELS      equ 64          ; ο πίνακας best[]: 4 bytes η πίστα, offset σε 8 bits
+MAX_LEVELS      equ 64          ; ο πίνακας best[]: 4 bytes η πίστα, 256 ανά δυσκολία
+DIFFICULTIES    equ 3           ; EASY, MEDIUM, HARD
 
 ; cell[]: τύπος στα bits 0-2
 C_NORMAL        equ 0

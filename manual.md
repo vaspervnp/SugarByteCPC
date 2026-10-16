@@ -28,6 +28,7 @@ And this isn't the CPC you know:
   colour of the rainbow while the board keeps all sixteen of its own.
 - **SUGAR CRUSH!** Finish a level with moves to spare and every leftover move
   turns into a striped candy — then they all go off at once.
+- **THREE WAYS TO PLAY** — EASY to learn, MEDIUM to sweat, HARD to brag about.
 - **SIXTY HAND-MADE LEVELS** — jelly to clear, icing to crack, chocolate that
   spreads, licorice that won't budge, cherries and hazelnuts to bring home, and
   boards shaped like diamonds, hourglasses and rings, where candies slide
@@ -85,8 +86,9 @@ with **SPACE** or **FIRE**.
 |---|---|
 | **PLAY** | Start the level shown under it. |
 | **LEVEL NN** | Enter a **level code** to jump to a level you've reached before (see *Level codes*). |
+| **MODE EASY / MEDIUM / HARD** | Pick the difficulty: **SPACE** goes round the three (see *Difficulty*). |
 | **SOUND ON / OFF** | Turn the music on or off. |
-| **SCORES** | Your best score and stars for every level. Twenty levels to a page: **←** and **→** turn the page, **SPACE** or **ESC** goes back. |
+| **SCORES** | Your best score and stars for every level, for the difficulty you've picked. Twenty levels to a page: **←** and **→** turn the page, **SPACE** or **ESC** goes back. |
 
 ---
 
@@ -163,6 +165,25 @@ the next level, with its code shown in the panel.
 
 If you run out of moves first, the border flashes. Press **SPACE** to try the
 same level again, or **ESC** for the menu.
+
+---
+
+## DIFFICULTY
+
+Every level can be played three ways. Choose with **MODE** in the menu before
+you press **PLAY**:
+
+| | |
+|---|---|
+| **EASY** | All the moves the level was designed with. Start here. |
+| **MEDIUM** | About four fifths of the moves. |
+| **HARD** | About two thirds of the moves — every swap has to count. |
+
+The board and the goal stay the same, so the same plan works — you just have
+less room for mistakes. Fewer moves also means fewer points, so the stars are
+harder to get too, and fewer moves are left over for Sugar Crush. Your best
+scores and stars are kept separately for each difficulty, and a level code
+works in all three.
 
 ---
 

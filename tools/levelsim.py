@@ -37,6 +37,7 @@ special.asm (ριγέ από 4, περιτύλιγμα από Γ/Τ, βόμβα 
 
   levelsim.py levels/levels.txt [--runs N] [--only 3,7] [--seed S]
                                 [--player greedy|best|random] [--jobs J]
+                                [--difficulty easy|medium|hard]
 """
 import argparse
 import os
@@ -594,6 +595,17 @@ def play(lv, seed, player):
     return result + (g.score if g.goal == G_SCORE else None,)
 
 
+def difficulty_moves(m, difficulty):
+    """Οι κινήσεις ανά δυσκολία, όπως το difficulty_moves του level.asm."""
+    if difficulty == 'medium':
+        m = m - (m >> 2) + (m >> 4)
+    elif difficulty == 'hard':
+        m = (m >> 1) + (m >> 3) + (m >> 5)
+    else:
+        return m
+    return max(5, m)
+
+
 def _job(args):
     lv, seeds, player = args
     return [play(lv, s, player) for s in seeds]
@@ -663,11 +675,13 @@ def main():
     ap.add_argument('--seed', type=int, default=1)
     ap.add_argument('--player', choices=('greedy', 'best', 'random'), default='greedy')
     ap.add_argument('--jobs', type=int, default=os.cpu_count() or 1)
+    ap.add_argument('--difficulty', choices=('easy', 'medium', 'hard'), default='easy')
     o = ap.parse_args()
 
     levels = parse(o.levels)
     for lv in levels:
         check(lv)
+        lv['moves'] = difficulty_moves(lv['moves'], o.difficulty)
     only = {s.strip() for s in o.only.split(',') if s.strip()}
     todo = [lv for lv in levels if not only or lv['name'] in only]
 
@@ -690,7 +704,7 @@ def main():
     for (li, _), out in zip(jobs, outs):
         results[li].extend(out)
 
-    print(f"{o.runs} παρτίδες ανά πίστα, παίκτης {o.player}, σπόρος {o.seed}")
+    print(f"{o.runs} παρτίδες ανά πίστα, παίκτης {o.player}, σπόρος {o.seed}, δυσκολία {o.difficulty}")
     print("lvl goal        mv col  win%  mvW     p25    p50    p75   *1  *2  *3   stars (αρχείο)")
     for lv, res in zip(todo, results):
         print(report(lv, res))
